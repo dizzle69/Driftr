@@ -1,34 +1,128 @@
 # Strava Analytics
 
-Local-first web app for cyclists. Import your Strava export and get insights Strava doesn't show you.
+Local-first cycling analytics dashboard. Import your Strava ZIP export and get deep insights that Strava doesn't show you — all processed in your browser, nothing uploaded to any server.
 
-## Setup
+![Stack](https://img.shields.io/badge/React-18.3-61DAFB?logo=react) ![Stack](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite) ![Stack](https://img.shields.io/badge/Tailwind-3.4-38BDF8?logo=tailwindcss)
+
+---
+
+## Quick Start
 
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:5173
+npm run build    # production build → dist/
 ```
 
-## Build
+---
 
-```bash
-npm run build
-npm run preview
-```
+## What It Does
 
-## Phase Status
+Import your Strava data export (the ZIP you download from Strava settings) and get:
 
-- [x] Phase 1 — Foundation & Import (scaffold ready)
-- [ ] Phase 2 — GPX/FIT Parsing
-- [ ] Phase 3 — IndexedDB Persistence
-- [ ] Phase 4 — Weather Integration
-- [ ] Phase 5 — Wind Analysis
-- [ ] Phase 6 — Charts & Insights
-- [ ] Phase 7 — Polish & Launch
+### 📊 Dashboard Charts
+- **Weekly volume** — km, elevation, moving time per calendar week
+- **Year-over-Year** — monthly distance comparison across all years
+- **Cadence trend** — rolling weekly average cadence
+- **Heart Rate trend** — rolling weekly average HR
+
+### 💪 Training Load
+- **CTL / ATL / TSB** (Fitness / Fatigue / Form) curves using exponential moving averages on Relative Effort
+- Color-coded TSB bars — green when fresh, red when fatigued
+
+### 🏅 Summary & Records
+- **Summary bar** — total km, elevation, ride count, current streak, longest streak, weekly consistency %
+- **Personal Records** — longest ride, biggest climbing day, fastest avg speed, highest power, most elevation in a week
+- **Insight Cards** — smart observations (best month, top gear ratio, training consistency, etc.)
+
+### 🗺️ Maps & Heatmap
+- **Route Heatmap** — all GPS tracks overlaid on a Leaflet map; click any route to highlight it
+- **Time Heatmap** — activity distribution by day-of-week × hour-of-day
+
+### 📋 Activity List
+- Sortable table with all rides: date, name, start location, distance, time, speed, elevation, watts, HR, temp, wind
+- Click any row to expand a **detail panel** with ride profile chart (elevation + speed/power), full stats, weather breakdown, wind analysis (headwind/tailwind/crosswind %)
+
+### 🌤️ Weather Enrichment (Open-Meteo)
+- Automatically fetches historical weather for each ride start (temperature, wind, precipitation, UV, cloud cover)
+- Background enrichment with progress bar — non-blocking, runs after import
+- Results cached in IndexedDB — subsequent loads are instant
+
+### 📍 Reverse Geocoding (Nominatim / OpenStreetMap)
+- Resolves GPS start coordinates to human-readable location names ("Hamburg", "Vienna, Austria")
+- Shown in the activity table and detail panel
+- Throttled to respect Nominatim's 1 req/sec ToS; IDB-cached for instant re-loads
+
+### 🔍 Filtering
+- Timeframe presets: Last 30 / 90 / 365 days, This Year, Last Year, All Time
+- Custom date range picker
+- Minimum distance filter
+- All charts, stats, and tables update reactively
+
+---
 
 ## Architecture
 
-All processing is client-side. No data leaves the browser except:
-- Open-Meteo API calls (GPS start coordinates + date per activity)
+**100% client-side** — no backend, no account, no tracking.
 
-See `PROJECTS/Strava-Analytics/Brief.md` and `Roadmap.md` for full spec.
+Data that leaves the browser:
+- **Open-Meteo API** — GPS start point + date per activity (weather fetch)
+- **Nominatim API** — GPS start point per activity (reverse geocoding)
+
+Both are throttled and cached in IndexedDB after the first request.
+
+### Stack
+
+| Layer | Technology |
+|---|---|
+| UI framework | React 18 + Vite 5 |
+| Styling | Tailwind CSS 3 (dark theme) |
+| Charts | Recharts 2 |
+| Maps | Leaflet + react-leaflet |
+| Local storage | IndexedDB via `idb` |
+| ZIP parsing | JSZip |
+| CSV parsing | PapaParse |
+| FIT file parsing | fit-file-parser |
+| GPS math | Custom haversine implementation |
+
+### Key Files
+
+```
+src/
+├── App.jsx                     # Root — state, enrichment triggers, progress bars
+├── components/
+│   ├── FileUploader.jsx        # ZIP import, worker orchestration
+│   ├── ActivityList.jsx        # Sortable table + detail panel + ride profile chart
+│   ├── DashboardCharts.jsx     # Weekly/YoY/cadence/HR recharts
+│   ├── FitnessChart.jsx        # CTL/ATL/TSB training load
+│   ├── SummaryBar.jsx          # Streak + totals bar
+│   ├── InsightCards.jsx        # Smart insight tiles
+│   ├── PersonalRecords.jsx     # PRs
+│   ├── TimeHeatmap.jsx         # Day × hour activity grid
+│   ├── RouteHeatmap.jsx        # Leaflet GPS overlay
+│   └── TimeframeFilter.jsx     # Filter controls
+├── hooks/
+│   └── useActivities.js        # Activities state + weather + geocoding enrichment
+├── utils/
+│   ├── parseStrava.js          # CSV + FIT → activity objects
+│   ├── weatherApi.js           # Open-Meteo fetch + cache
+│   ├── geocodingApi.js         # Nominatim fetch + cache
+│   ├── gpsCalc.js              # Haversine, wind analysis
+│   └── insights.js             # Insight card generators
+├── db/
+│   └── indexedDb.js            # IDB wrapper (activities, weather_cache, geocoding_cache)
+└── workers/
+    └── parseWorker.js          # Off-main-thread ZIP/FIT parsing
+```
+
+---
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned features.
+
+---
+
+## Privacy
+
+Your ride data never leaves your machine (except the two anonymised API calls above). No cookies, no analytics, no login required. Reset button wipes all IndexedDB data instantly.
