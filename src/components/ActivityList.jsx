@@ -14,6 +14,13 @@ function formatDuration(seconds) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
+const WIND_DIR_LABELS = ['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW']
+
+function degToCompass(deg) {
+  if (deg == null || !Number.isFinite(deg)) return '—'
+  return WIND_DIR_LABELS[Math.round(deg / 22.5) % 16]
+}
+
 function WindBadge({ windAnalysis }) {
   if (!windAnalysis) return <span className="text-gray-600 text-xs">—</span>
   const { headwindPct } = windAnalysis
@@ -237,6 +244,7 @@ function DetailPanel({ activity }) {
       <div>
         <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Wetter</h4>
         {a.weather ? (
+          <>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <Stat label="Temperatur" value={`${Math.round(a.weather.temperature)}°C`} />
             <Stat label="Gefühlt" value={a.weather.apparentTemperature ? `${Math.round(a.weather.apparentTemperature)}°C` : '—'} />
@@ -250,6 +258,32 @@ function DetailPanel({ activity }) {
               <div className="col-span-2 text-gray-400 text-xs mt-1">{a.weather.condition}</div>
             )}
           </div>
+          {a.weather.samples && (
+            <div className="mt-4">
+              <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Stichproben (Start/Mitte/Ende)
+              </h5>
+              <div className="grid grid-cols-3 gap-3">
+                {(['start', 'mid', 'end']).map(k => {
+                  const s = a.weather.samples?.[k]
+                  if (!s) return null
+                  const temp = s.temperature != null ? `${Math.round(s.temperature)}°C` : '—'
+                  const windDir = s.winddirection != null ? `${Math.round(s.winddirection)}° ${degToCompass(s.winddirection)}` : '—'
+                  const windSpeed = s.windspeed != null ? `${Math.round(s.windspeed)} km/h` : '—'
+                  const label = k === 'start' ? 'Start' : k === 'mid' ? 'Mitte' : 'Ende'
+                  return (
+                    <div key={k} className="bg-gray-800/40 border border-gray-700 rounded-lg px-3 py-2">
+                      <div className="text-xs font-semibold text-gray-200 mb-1">{label}</div>
+                      <div className="text-xs text-gray-300">Temp: {temp}</div>
+                      <div className="text-xs text-gray-300">Wind: {windSpeed}</div>
+                      <div className="text-xs text-gray-300">Richtung: {windDir}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          </>
         ) : (
           <p className="text-gray-600 text-sm">Keine Wetterdaten</p>
         )}

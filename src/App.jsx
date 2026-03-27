@@ -10,13 +10,24 @@ import TimeframeFilter, { filterActivities } from './components/TimeframeFilter'
 import SummaryBar from './components/SummaryBar'
 import FitnessChart from './components/FitnessChart'
 import { useActivities } from './hooks/useActivities'
-import { loadActivitiesFromDb, clearActivitiesDb } from './db/indexedDb'
+import {
+  loadActivitiesFromDb,
+  clearActivitiesDb,
+  clearWeatherCacheDb,
+  clearGeocodingCacheDb,
+} from './db/indexedDb'
+import AiCoach from './components/AiCoach'
 
 // App states: 'empty' | 'dashboard'
 export default function App() {
   const [appState, setAppState] = useState('empty')
   const [selectedActivity, setSelectedActivity] = useState(null)
-  const [timeFilter, setTimeFilter] = useState({ preset: 'all', from: '', to: '', minDistance: 0 })
+  const [timeFilter, setTimeFilter] = useState({ preset: 'all', from: '', to: '', minDistance: 0, types: [] })
+  const [consent, setConsent] = useState(() => ({
+    weather: localStorage.getItem('consent_weather') !== 'false',
+    geocoding: localStorage.getItem('consent_geocoding') !== 'false',
+    mapTiles: localStorage.getItem('consent_mapTiles') !== 'false',
+  }))
 
   const {
     activities,
@@ -37,11 +48,11 @@ export default function App() {
 
         // Weather fill for rides missing it (e.g. rides imported before this feature)
         const needsWeather = cached.filter(a => !a.weather && a.startLat != null && a.startLon != null)
-        if (needsWeather.length > 0) enrichWithWeather(cached)
+        if (consent.weather && needsWeather.length > 0) enrichWithWeather(cached)
 
         // Geocode rides that haven't been located yet
         const needsGeo = cached.filter(a => !a.startLocation && a.startLat != null && a.startLon != null)
-        if (needsGeo.length > 0) enrichWithGeocoding(cached)
+        if (consent.geocoding && needsGeo.length > 0) enrichWithGeocoding(cached)
       }
     }
     checkCache()
@@ -53,10 +64,10 @@ export default function App() {
 
     // Trigger both enrichments in parallel — each skips already-enriched rides
     const needsWeather = parsedActivities.filter(a => !a.weather && a.startLat != null && a.startLon != null)
-    if (needsWeather.length > 0) enrichWithWeather(parsedActivities)
+    if (consent.weather && needsWeather.length > 0) enrichWithWeather(parsedActivities)
 
     const needsGeo = parsedActivities.filter(a => !a.startLocation && a.startLat != null && a.startLon != null)
-    if (needsGeo.length > 0) enrichWithGeocoding(parsedActivities)
+    if (consent.geocoding && needsGeo.length > 0) enrichWithGeocoding(parsedActivities)
   }
 
   const filtered = useMemo(
@@ -105,12 +116,13 @@ export default function App() {
         {appState === 'dashboard' && (
           <button
             onClick={async () => {
-              await clearActivitiesDb()
+              await Promise.all([clearActivitiesDb(), clearWeatherCacheDb(), clearGeocodingCacheDb()])
               setActivities([])
               setAppState('empty')
-              setTimeFilter({ preset: 'all', from: '', to: '', minDistance: 0 })
+              setTimeFilter({ preset: 'all', from: '', to: '', minDistance: 0, types: [] })
             }}
-            className="text-sm text-gray-400 hover:text-white transition"
+            disabled={weatherProgress || geocodingProgress}
+            className="text-sm text-gray-400 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Reset
           </button>
@@ -123,6 +135,55 @@ export default function App() {
         )}
 
         {appState === 'dashboard' && (
+          <>
+          <AiCoach activities={filtered} />
+          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 space-y-2">
+            <h2 className="text-sm font-semibold text-gray-200">Datenfreigaben</h2>
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+              <label className="flex items-start gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={consent.weather}
+                  onChange={e => {
+                    const v = e.target.checked
+                    setConsent(prev => ({ ...prev, weather: v }))
+                    localStorage.setItem('consent_weather', v ? 'true' : 'false')
+                  }}
+                  className="mt-0.5"
+                />
+                Wetterdaten nachladen (Open-Meteo)
+              </label>
+              <label className="flex items-start gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={consent.geocoding}
+                  onChange={e => {
+                    const v = e.target.checked
+                    setConsent(prev => ({ ...prev, geocoding: v }))
+                    localStorage.setItem('consent_geocoding', v ? 'true' : 'false')
+                  }}
+                  className="mt-0.5"
+                />
+                Ortsnamen bestimmen (Nominatim)
+              </label>
+              <label className="flex items-start gap-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={consent.mapTiles}
+                  onChange={e => {
+                    const v = e.target.checked
+                    setConsent(prev => ({ ...prev, mapTiles: v }))
+                    localStorage.setItem('consent_mapTiles', v ? 'true' : 'false')
+                  }}
+                  className="mt-0.5"
+                />
+                Kartenkacheln laden (CARTO)
+              </label>
+            </div>
+            <p className="text-xs text-gray-500">
+              Wird beim Laden/Import verwendet; schon berechnete Daten bleiben im Browser gespeichert.
+            </p>
+          </div>
           <div className="space-y-8">
             <TimeframeFilter
               filter={timeFilter}
@@ -135,13 +196,14 @@ export default function App() {
             <PersonalRecords activities={filtered} />
             <TimeHeatmap activities={filtered} />
             <DashboardCharts activities={filtered} />
-            <RouteHeatmap activities={filtered} />
+            <RouteHeatmap activities={filtered} enableTiles={consent.mapTiles} />
             <ActivityList
               activities={filtered}
               selected={selectedActivity}
               onSelect={setSelectedActivity}
             />
           </div>
+          </>
         )}
       </main>
     </div>

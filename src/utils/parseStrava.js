@@ -148,8 +148,15 @@ export async function parseActivityFile(filename, content) {
   if (lower.endsWith('.gpx')) {
     return parseGpx(content)
   }
-  if (lower.endsWith('.fit') || lower.endsWith('.fit.gz')) {
-    // TODO: handle .fit.gz (gzipped) — needs DecompressionStream
+  if (lower.endsWith('.fit.gz')) {
+    const ds = new DecompressionStream('gzip')
+    const writer = ds.writable.getWriter()
+    writer.write(new Uint8Array(content))
+    writer.close()
+    const decompressed = await new Response(ds.readable).arrayBuffer()
+    return parseFit(decompressed)
+  }
+  if (lower.endsWith('.fit')) {
     return parseFit(content)
   }
 

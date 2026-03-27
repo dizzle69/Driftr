@@ -7,12 +7,16 @@ const MS_TO_KMH = 3.6
  * Group activities by temperature bucket and find best performing range
  */
 function bestTemperatureRange(activities) {
-  const withTemp = activities.filter(a => a.weather?.temperature != null && a.avgSpeed > 0)
+  const withTemp = activities.filter(a => {
+    const t = a.weather?.avgTemperature ?? a.weather?.temperature
+    return t != null && a.avgSpeed > 0
+  })
   if (withTemp.length < 10) return null
 
   const buckets = {}
   withTemp.forEach(a => {
-    const bucket = Math.floor(a.weather.temperature / 5) * 5 // 5°C buckets
+    const t = a.weather.avgTemperature ?? a.weather.temperature
+    const bucket = Math.floor(t / 5) * 5 // 5°C buckets
     if (!buckets[bucket]) buckets[bucket] = []
     buckets[bucket].push(a.avgSpeed * MS_TO_KMH)
   })

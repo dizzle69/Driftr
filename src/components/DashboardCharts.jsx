@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import InfoTooltip from './InfoTooltip'
+import PowerCurve from './PowerCurve'
 import {
   BarChart, Bar, Cell, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -45,9 +47,12 @@ export default function DashboardCharts({ activities }) {
   // --- Speed vs Temperature ---
   const tempSpeedData = useMemo(() => {
     return activities
-      .filter(a => a.weather?.temperature != null && a.avgSpeed > 0)
+      .filter(a => {
+        const t = a.weather?.avgTemperature ?? a.weather?.temperature
+        return t != null && a.avgSpeed > 0
+      })
       .map(a => ({
-        temp: Math.round(a.weather.temperature),
+        temp: Math.round(a.weather.avgTemperature ?? a.weather.temperature),
         speed: parseFloat((a.avgSpeed * MS_TO_KMH).toFixed(1)),
         name: a.name,
       }))
@@ -254,6 +259,7 @@ export default function DashboardCharts({ activities }) {
       <div>
         <h2 className="text-lg font-semibold mb-3 text-gray-200">
           Wochenvolumen <span className="text-gray-500 font-normal text-sm">(letzte 24 Wochen)</span>
+          <InfoTooltip text="Wöchentliche Kilometer und Anzahl Fahrten der letzten 24 Wochen." />
         </h2>
         <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
           <ResponsiveContainer width="100%" height={280}>
@@ -279,7 +285,7 @@ export default function DashboardCharts({ activities }) {
       {/* Monthly Progression */}
       {monthlyData.length > 1 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Monatliche Entwicklung</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Monatliche Entwicklung<InfoTooltip text="Monatliche Gesamtdistanz, Durchschnittsgeschwindigkeit und optional Leistung (Watt)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={monthlyData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -306,7 +312,7 @@ export default function DashboardCharts({ activities }) {
       {/* Speed vs Temperature */}
       {tempSpeedData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Geschwindigkeit vs. Temperatur</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Geschwindigkeit vs. Temperatur<InfoTooltip text="Zusammenhang zwischen Außentemperatur und Durchschnittsgeschwindigkeit je Fahrt." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ScatterChart margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -325,7 +331,7 @@ export default function DashboardCharts({ activities }) {
       {/* Ride Duration Breakdown */}
       {durationData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Fahrtzeit-Aufteilung</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Fahrtzeit-Aufteilung<InfoTooltip text="Zeitanteil je Fahrt aufgeteilt in Bergauf-, Bergab- und Flachstrecken (in Minuten)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={durationData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -347,7 +353,7 @@ export default function DashboardCharts({ activities }) {
       {/* Cumulative Exploration */}
       {explorationData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Neue Strecken entdeckt</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Neue Strecken entdeckt<InfoTooltip text="Kumuliert neu erkundete Streckenkilometer im Zeitverlauf – Strecken, die du zum ersten Mal gefahren bist." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={explorationData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -366,7 +372,7 @@ export default function DashboardCharts({ activities }) {
       {/* Calorie & Effort Trends */}
       {hasCalorieData && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Kalorien & Effort pro Woche</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Kalorien & Effort pro Woche<InfoTooltip text="Wöchentlicher Kalorienverbrauch und durchschnittlicher relativer Trainingsaufwand (Strava Relative Effort)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={weeklyCalorieData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -391,6 +397,7 @@ export default function DashboardCharts({ activities }) {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-200">
               Power Zonen <span className="text-gray-500 font-normal text-sm">(aus GPS-Tracks)</span>
+              <InfoTooltip text="Anteil der Fahrzeit in den fünf Leistungszonen relativ zu deiner FTP (Functional Threshold Power)." />
             </h2>
             <label className="flex items-center gap-2 text-sm text-gray-400">
               FTP:
@@ -429,11 +436,15 @@ export default function DashboardCharts({ activities }) {
         </div>
       )}
 
+      {/* Power Curve */}
+      <PowerCurve activities={activities} />
+
       {/* Year-over-Year Monthly Comparison */}
       {hasYoY && (
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
             Jahr-für-Jahr Vergleich <span className="text-gray-500 font-normal text-sm">(km pro Monat)</span>
+            <InfoTooltip text="Monatsweise Distanzvergleich über mehrere Jahre hinweg – ideal um Saisonmuster zu erkennen." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
@@ -464,6 +475,7 @@ export default function DashboardCharts({ activities }) {
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
             Trittfrequenz-Entwicklung <span className="text-gray-500 font-normal text-sm">(Ø rpm pro Monat)</span>
+            <InfoTooltip text="Monatlicher Durchschnitt der Trittfrequenz (U/min). Höhere Kadenz schont typischerweise die Gelenke." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={240}>
@@ -487,6 +499,7 @@ export default function DashboardCharts({ activities }) {
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
             Herzfrequenz-Entwicklung <span className="text-gray-500 font-normal text-sm">(Ø bpm pro Monat)</span>
+            <InfoTooltip text="Monatlicher Durchschnitt der Herzfrequenz (bpm). Sinkende Werte bei gleicher Leistung deuten auf bessere Fitness hin." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={240}>

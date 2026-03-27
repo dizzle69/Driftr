@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import InfoTooltip from './InfoTooltip'
 
 const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 // Map JS getDay() (0=Sun) to Mon-first index
@@ -34,7 +35,7 @@ export default function TimeHeatmap({ activities }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3 text-gray-200">Tageszeit-Heatmap</h2>
+      <h2 className="text-lg font-semibold mb-3 text-gray-200">Tageszeit-Heatmap<InfoTooltip text="Zeigt zu welchen Tages- und Wochenzeiten du am häufigsten fährst. Dunklere Felder = mehr Aktivitäten." /></h2>
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 overflow-x-auto">
         <div className="min-w-[600px]">
           {/* Hour labels */}

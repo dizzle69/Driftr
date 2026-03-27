@@ -52,8 +52,11 @@ export function calculateMaxSpeedFromGps(points) {
   // Calculate raw segment speeds (m/s)
   const speeds = []
   for (let i = 1; i < points.length; i++) {
+    // Guard against missing/invalid timestamps (e.g. some FIT exports).
+    if (!points[i - 1].time || !points[i].time) continue
     const t1 = new Date(points[i - 1].time).getTime()
     const t2 = new Date(points[i].time).getTime()
+    if (!Number.isFinite(t1) || !Number.isFinite(t2)) continue
     const dt = (t2 - t1) / 1000 // seconds
     if (dt <= 0 || dt > 300) continue // skip bad timestamps or pauses > 5min
 
@@ -92,6 +95,57 @@ export function analyzeWindImpact(points, windDirection) {
       points[i - 1].lat, points[i - 1].lon,
       points[i].lat, points[i].lon
     )
+    const classification = classifyWind(bearing, windDirection)
+    counts[classification]++
+  }
+
+  const total = counts.headwind + counts.tailwind + counts.crosswind
+  if (total === 0) return null
+
+  return {
+    headwindPct: Math.round((counts.headwind / total) * 100),
+    tailwindPct: Math.round((counts.tailwind / total) * 100),
+    crosswindPct: Math.round((counts.crosswind / total) * 100),
+  }
+}
+
+/**
+ * Analyze wind impact using time-bucketed wind directions (start/mid/end).
+ * The GPS track is split into 3 buckets based on relative time position between
+ * the first and last point timestamps.
+ *
+ * @param {Array<{lat:number, lon:number, time:string|null}>} points
+ * @param {{ start?: { winddirection?: number|null }, mid?: { winddirection?: number|null }, end?: { winddirection?: number|null } }} windSamples
+ * @returns {{ headwindPct: number, tailwindPct: number, crosswindPct: number } | null}
+ */
+export function analyzeWindImpactWithSamples(points, windSamples) {
+  if (!points || points.length < 2 || !windSamples) return null
+
+  const counts = { headwind: 0, tailwind: 0, crosswind: 0 }
+
+  const t0 = points[0]?.time ? new Date(points[0].time).getTime() : NaN
+  const t1 = points[points.length - 1]?.time ? new Date(points[points.length - 1].time).getTime() : NaN
+  if (!Number.isFinite(t0) || !Number.isFinite(t1) || t1 <= t0) return null
+
+  for (let i = 1; i < points.length; i++) {
+    const pPrev = points[i - 1]
+    const pCurr = points[i]
+    if (!pPrev?.time || !pCurr?.time) continue
+
+    const tpPrev = new Date(pPrev.time).getTime()
+    const tpCurr = new Date(pCurr.time).getTime()
+    if (!Number.isFinite(tpPrev) || !Number.isFinite(tpCurr)) continue
+
+    const midTime = (tpPrev + tpCurr) / 2
+    const frac = (midTime - t0) / (t1 - t0)
+    let bucket = 'mid'
+    if (frac < 1 / 3) bucket = 'start'
+    else if (frac >= 2 / 3) bucket = 'end'
+
+    const windDirection = windSamples[bucket]?.winddirection ?? null
+    if (windDirection == null) continue
+
+    const bearing = calculateBearing(pPrev.lat, pPrev.lon, pCurr.lat, pCurr.lon)
     const classification = classifyWind(bearing, windDirection)
     counts[classification]++
   }

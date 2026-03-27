@@ -13,14 +13,28 @@ function formatDate(dateString) {
   return new Date(dateString).toISOString().split('T')[0]
 }
 
+function formatDateLocal(dateObj) {
+  const y = dateObj.getFullYear()
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0')
+  const d = String(dateObj.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function clampInt(n, min, max) {
+  if (!Number.isFinite(n)) return min
+  return Math.max(min, Math.min(max, Math.trunc(n)))
+}
+
 /**
  * Fetch weather for a single activity from Open-Meteo (with cache)
  * @param {number} lat
  * @param {number} lon
  * @param {string} date - ISO date string
+ * @param {number|null} startTimeEpochSec - Strava CSV "Start Time" epoch seconds
+ * @param {number|null} elapsedTimeSec - Strava CSV "Elapsed Time" in seconds
  * @returns {{ temperature, windspeed, winddirection, precipitation }}
  */
-export async function fetchWeatherForActivity(lat, lon, date) {
+export async function fetchWeatherForActivity(lat, lon, date, startTimeEpochSec = null, elapsedTimeSec = null) {
   const dateStr = formatDate(date)
   const cacheKey = `${lat.toFixed(2)}_${lon.toFixed(2)}_${dateStr}`
 
@@ -50,13 +64,71 @@ export async function fetchWeatherForActivity(lat, lon, date) {
   const json = await res.json()
   const hourly = json.hourly
 
-  // Use midday (hour 12) as representative value for the day
+  // We still keep midday (hour 12) as a representative value for backwards compatibility.
   const midday = 12
+  const activityDateLocalStr = formatDateLocal(activityDate)
+
+  function hourIndexForTime(epochMs) {
+    const d = new Date(epochMs)
+    const localStr = formatDateLocal(d)
+    const hour = d.getHours()
+    // If the ride crosses midnight, clamp to the fetched day's hourly range.
+    if (localStr !== activityDateLocalStr) {
+      return localStr > activityDateLocalStr ? 23 : 0
+    }
+    return clampInt(hour, 0, 23)
+  }
+
+  // Sample at 3 ride moments from a single Open-Meteo hourly request.
+  let startHourIdx = midday
+  let midHourIdx = midday
+  let endHourIdx = midday
+
+  if (startTimeEpochSec && elapsedTimeSec && elapsedTimeSec > 0) {
+    const startMs = startTimeEpochSec * 1000
+    const midMs = startMs + (elapsedTimeSec * 1000) / 2
+    const endMs = startMs + elapsedTimeSec * 1000
+
+    startHourIdx = hourIndexForTime(startMs)
+    midHourIdx = hourIndexForTime(midMs)
+    endHourIdx = hourIndexForTime(endMs)
+  }
+
+  function sampleAtHour(hourIdx) {
+    // Open-Meteo should return 24 values for a single-day request.
+    const idx = clampInt(hourIdx, 0, 23)
+    return {
+      temperature: hourly.temperature_2m?.[idx] ?? null,
+      windspeed: hourly.windspeed_10m?.[idx] ?? null,
+      winddirection: hourly.winddirection_10m?.[idx] ?? null,
+      precipitation: hourly.precipitation?.[idx] ?? null,
+    }
+  }
+
+  const startSample = sampleAtHour(startHourIdx)
+  const midSample = sampleAtHour(midHourIdx)
+  const endSample = sampleAtHour(endHourIdx)
+
+  const tempSamples = [startSample.temperature, midSample.temperature, endSample.temperature].filter(
+    v => v != null && Number.isFinite(v),
+  )
+  const avgTemperature = tempSamples.length
+    ? tempSamples.reduce((s, v) => s + v, 0) / tempSamples.length
+    : null
+
+  // Use midday (hour 12) as representative value for the day.
   const weather = {
-    temperature: hourly.temperature_2m[midday],
-    windspeed: hourly.windspeed_10m[midday],
-    winddirection: hourly.winddirection_10m[midday],
-    precipitation: hourly.precipitation[midday],
+    temperature: hourly.temperature_2m[midday] ?? null,
+    windspeed: hourly.windspeed_10m[midday] ?? null,
+    winddirection: hourly.winddirection_10m[midday] ?? null,
+    precipitation: hourly.precipitation[midday] ?? null,
+    // New: sampled values at start/mid/end of the ride.
+    samples: {
+      start: startSample,
+      mid: midSample,
+      end: endSample,
+    },
+    avgTemperature,
   }
 
   await saveWeatherToCache(cacheKey, weather)
@@ -84,7 +156,13 @@ export async function fetchWeatherBulk(activities, onProgress) {
     }
 
     try {
-      const weather = await fetchWeatherForActivity(a.startLat, a.startLon, a.date)
+      const weather = await fetchWeatherForActivity(
+        a.startLat,
+        a.startLon,
+        a.date,
+        a.startTimeEpoch,
+        a.elapsedTime,
+      )
       results[i] = { ...a, weather }
     } catch (err) {
       console.warn(`Weather fetch failed for activity ${a.id}:`, err.message)

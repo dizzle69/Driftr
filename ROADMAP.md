@@ -1,6 +1,6 @@
 # Roadmap
 
-Current version: **v0.1.0** — fully functional local analytics dashboard with weather + geocoding enrichment.
+Current version: **v0.1.1** — fully functional local analytics dashboard with weather + geocoding enrichment.
 
 ---
 
@@ -88,11 +88,15 @@ Features:
 | Feature | Version |
 |---|---|
 | ZIP import (CSV + FIT files) | v0.1 |
+| ZIP parsing off the main thread (Web Worker) | v0.1.1 |
 | GPS track parsing + route heatmap | v0.1 |
 | Wind analysis (headwind/tailwind/crosswind) | v0.1 |
+| Weather sampled at start/mid/end (cost-free) + time-bucketed wind analysis | v0.1.1 |
 | GPS spike filtering | v0.1 |
 | IndexedDB persistence | v0.1 |
 | Open-Meteo weather enrichment | v0.1 |
+| Weather/geocoding/map-tile consent toggles + cache-aware reset | v0.1.1 |
+| AI coach consent + non-persistent API key storage | v0.1.1 |
 | Nominatim reverse geocoding | v0.1 |
 | CTL/ATL/TSB fitness chart | v0.1 |
 | Weekly/YoY/cadence/HR charts | v0.1 |

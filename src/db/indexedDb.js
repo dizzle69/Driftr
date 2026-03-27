@@ -50,6 +50,11 @@ export async function clearActivitiesDb() {
   return db.clear('activities')
 }
 
+export async function clearWeatherCacheDb() {
+  const db = await getDb()
+  return db.clear('weather_cache')
+}
+
 // --- Weather Cache ---
 
 export async function getWeatherFromCache(key) {
@@ -74,4 +79,9 @@ export async function getGeocodingFromCache(key) {
 export async function saveGeocodingToCache(key, data) {
   const db = await getDb()
   return db.put('geocoding_cache', { key, data, cachedAt: new Date().toISOString() })
+}
+
+export async function clearGeocodingCacheDb() {
+  const db = await getDb()
+  return db.clear('geocoding_cache')
 }

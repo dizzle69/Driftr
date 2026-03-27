@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import InfoTooltip from './InfoTooltip'
 import {
   ComposedChart, Area, Line, Bar, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -68,7 +69,7 @@ export default function FitnessChart({ activities }) {
   return (
     <div>
       <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-lg font-semibold text-gray-200">Fitness-Kurve</h2>
+        <h2 className="text-lg font-semibold text-gray-200">Fitness-Kurve<InfoTooltip text="CTL (Fitness) = 42-Tage-EMA, ATL (Erschöpfung) = 7-Tage-EMA, TSB (Form) = CTL − ATL. Positiver TSB = frisch, negativer TSB = müde." /></h2>
         <span className="text-xs text-gray-500">basierend auf Relative Effort</span>
       </div>
       <p className="text-xs text-gray-600 mb-3">

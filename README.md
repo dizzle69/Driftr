@@ -44,7 +44,8 @@ Import your Strava data export (the ZIP you download from Strava settings) and g
 - Click any row to expand a **detail panel** with ride profile chart (elevation + speed/power), full stats, weather breakdown, wind analysis (headwind/tailwind/crosswind %)
 
 ### 🌤️ Weather Enrichment (Open-Meteo)
-- Automatically fetches historical weather for each ride start (temperature, wind, precipitation, UV, cloud cover)
+- Automatically fetches historical weather via Open-Meteo for each ride (temperature, wind, precipitation, UV, cloud cover)
+- Uses start/middle/end sampling from Open-Meteo hourly data to improve wind classification and temperature-based charts/insights
 - Background enrichment with progress bar — non-blocking, runs after import
 - Results cached in IndexedDB — subsequent loads are instant
 
@@ -68,8 +69,9 @@ Import your Strava data export (the ZIP you download from Strava settings) and g
 Data that leaves the browser:
 - **Open-Meteo API** — GPS start point + date per activity (weather fetch)
 - **Nominatim API** — GPS start point per activity (reverse geocoding)
+- **AI Coach (optional)** — when you open the chat, enter a provider key, and opt in to sending your training context, prompts/responses are sent directly from the browser to the chosen LLM provider
 
-Both are throttled and cached in IndexedDB after the first request.
+Open-Meteo and Nominatim are throttled and cached in IndexedDB after the first request.
 
 ### Stack
 
@@ -125,4 +127,4 @@ See [ROADMAP.md](ROADMAP.md) for planned features.
 
 ## Privacy
 
-Your ride data never leaves your machine (except the two anonymised API calls above). No cookies, no analytics, no login required. Reset button wipes all IndexedDB data instantly.
+Your ride data never leaves your machine (except the two anonymised APIs above, and optionally your AI Coach chat prompts when you opt in). No cookies, no analytics, no login required. Reset button wipes all IndexedDB data instantly.

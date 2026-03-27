@@ -1,5 +1,13 @@
 import { useMemo } from 'react'
 
+const TYPE_LABELS = {
+  Ride: 'Straße',
+  VirtualRide: 'Indoor',
+  EBikeRide: 'E-Bike',
+  GravelRide: 'Gravel',
+  MountainBikeRide: 'MTB',
+}
+
 const PRESETS = [
   { label: 'Alle', value: 'all' },
   { label: '7 Tage', value: '7d' },
@@ -18,6 +26,21 @@ const DISTANCE_PRESETS = [
 ]
 
 export default function TimeframeFilter({ filter, onChange, activities }) {
+  const availableTypes = useMemo(() => {
+    const seen = new Set()
+    activities.forEach(a => { if (a.type) seen.add(a.type) })
+    return [...seen].sort()
+  }, [activities])
+
+  const selectedTypes = filter.types || []
+
+  function toggleType(type) {
+    const next = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type]
+    onChange({ ...filter, types: next })
+  }
+
   // Compute date range from activities for the date inputs
   const dateRange = useMemo(() => {
     if (!activities.length) return { min: '', max: '' }
@@ -97,6 +120,25 @@ export default function TimeframeFilter({ filter, onChange, activities }) {
           {activeCount} Ride{activeCount !== 1 ? 's' : ''}
         </span>
       </div>
+
+      {availableTypes.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-gray-500 text-sm mr-1">Typ:</span>
+          {availableTypes.map(type => (
+            <button
+              key={type}
+              onClick={() => toggleType(type)}
+              className={`px-3 py-1 text-sm rounded-lg transition ${
+                selectedTypes.includes(type)
+                  ? 'bg-strava text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              {TYPE_LABELS[type] || type}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -112,6 +154,11 @@ export function filterActivities(activities, filter) {
   let result = minKm > 0
     ? activities.filter(a => a.distance * 0.001 >= minKm)
     : activities
+
+  // Activity type filter
+  if (filter.types?.length > 0) {
+    result = result.filter(a => filter.types.includes(a.type))
+  }
 
   if (filter.preset === 'all') return result
 

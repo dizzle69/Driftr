@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css'
 const MS_TO_KMH = 3.6
 const METERS_TO_KM = 0.001
 
-export default function RouteHeatmap({ activities }) {
+export default function RouteHeatmap({ activities, enableTiles = true }) {
   const [selectedId, setSelectedId] = useState(null)
 
   const tracks = useMemo(() => {
@@ -41,6 +41,11 @@ export default function RouteHeatmap({ activities }) {
       <h2 className="text-lg font-semibold mb-3 text-gray-200">
         Strecken-Heatmap <span className="text-gray-500 font-normal text-sm">({tracks.length} Rides)</span>
       </h2>
+      {!enableTiles && (
+        <p className="text-xs text-gray-500 mb-2">
+          Kartenkacheln sind deaktiviert. (Routen werden weiterhin angezeigt.)
+        </p>
+      )}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden" style={{ height: 450 }}>
         <MapContainer
           center={center}
@@ -48,10 +53,12 @@ export default function RouteHeatmap({ activities }) {
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          />
+          {enableTiles && (
+            <TileLayer
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          )}
           {tracks.map(t => (
             <Polyline
               key={t.id}

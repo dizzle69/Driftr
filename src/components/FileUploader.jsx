@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import JSZip from 'jszip'
 import Papa from 'papaparse'
 import { saveActivitiesToDb } from '../db/indexedDb'
-import { parseGpx } from '../utils/parseStrava'
 import { analyzeWindImpact, calculateMaxSpeedFromGps } from '../utils/gpsCalc'
 
 /**
@@ -92,10 +91,12 @@ export default function FileUploader({ onImportComplete }) {
         // Parse start time into hour (0-23) for time-of-day analysis
         const startTimeRaw = row['Start Time']
         let startHour = null
+        let startTimeEpoch = null
         if (startTimeRaw) {
           const epoch = parseFloat(startTimeRaw)
           if (!isNaN(epoch) && epoch > 0) {
             startHour = new Date(epoch * 1000).getHours()
+            startTimeEpoch = epoch
           }
         }
 
@@ -144,6 +145,7 @@ export default function FileUploader({ onImportComplete }) {
           carbonSaved: parseFloat(row['Carbon Saved'] || 0),
           // Time of day
           startHour,
+          startTimeEpoch,
           sunriseEpoch: sunriseEpoch > 0 ? sunriseEpoch : null,
           sunsetEpoch: sunsetEpoch > 0 ? sunsetEpoch : null,
           // Meta
@@ -163,60 +165,94 @@ export default function FileUploader({ onImportComplete }) {
         a.filename // skip manually entered activities without GPS file
       )
 
-      // Parse GPX files from ZIP for GPS tracks + wind analysis
-      const gpxRides = rides.filter(a => a.filename?.endsWith('.gpx'))
+      // Parse GPX/FIT files from ZIP for GPS tracks + wind analysis.
+      // Parsing is offloaded to a Web Worker to keep the UI responsive.
+      const supportedRides = rides.filter(a => {
+        const fn = (a.filename || '').toLowerCase()
+        return fn.endsWith('.gpx') || fn.endsWith('.fit') || fn.endsWith('.fit.gz')
+      })
+
+      const worker = new Worker(new URL('../workers/parseWorker.js', import.meta.url), { type: 'module' })
       let parsed = 0
-      for (const ride of gpxRides) {
-        try {
-          const gpxFile = Object.values(zip.files).find(f => f.name === ride.filename)
-          if (!gpxFile) continue
 
-          setProgress(`GPS-Tracks parsen... ${++parsed}/${gpxRides.length}`)
-          const gpxText = await gpxFile.async('string')
-          const track = parseGpx(gpxText)
+      try {
+        for (const ride of supportedRides) {
+          const trackFile =
+            zip.file(ride.filename) ||
+            Object.values(zip.files).find(f => f.name === ride.filename)
+          if (!trackFile) continue
 
-          if (track.points.length > 0) {
-            // Calculate smoothed max speed from FULL track before downsampling
-            const gpsMaxSpeed = calculateMaxSpeedFromGps(track.points)
-            if (gpsMaxSpeed > 0) {
-              ride.maxSpeedCsv = ride.maxSpeed   // original CSV value for reference
-              ride.maxSpeed = gpsMaxSpeed         // GPS-derived, spike-filtered
-            }
+          try {
+            setProgress(`Tracks parsen... ${++parsed}/${supportedRides.length}`)
 
-            // Store extension flags on activity
-            ride.hasPowerTrack  = track.hasPower
-            ride.hasHrTrack     = track.hasHR
-            ride.hasCadenceTrack = track.hasCadence
+            const lower = String(ride.filename || '').toLowerCase()
+            const content = lower.endsWith('.gpx')
+              ? await trackFile.async('string')
+              : await trackFile.async('arraybuffer')
 
-            // Compute Normalized Power from full-res track if power data present
-            if (track.hasPower) {
-              ride.normalizedPower = calcNormalizedPower(track.points)
-              // Override empty CSV weightedAvgPower with GPS-derived NP
-              if (!ride.weightedAvgPower && ride.normalizedPower > 0) {
-                ride.weightedAvgPower = ride.normalizedPower
+            const track = await new Promise((resolve, reject) => {
+              function onMessage(e) {
+                const msg = e.data || {}
+                if (msg.id !== ride.id) return
+                worker.removeEventListener('message', onMessage)
+                if (msg.error) reject(new Error(msg.error))
+                else resolve(msg.result)
+              }
+              worker.addEventListener('message', onMessage)
+
+              if (content instanceof ArrayBuffer) {
+                worker.postMessage({ id: ride.id, filename: ride.filename, content }, [content])
+              } else {
+                worker.postMessage({ id: ride.id, filename: ride.filename, content })
+              }
+            })
+
+            if (track?.points?.length > 0) {
+              // Calculate smoothed max speed from FULL track before downsampling.
+              const gpsMaxSpeed = calculateMaxSpeedFromGps(track.points)
+              if (gpsMaxSpeed > 0) {
+                ride.maxSpeedCsv = ride.maxSpeed   // original CSV value for reference
+                ride.maxSpeed = gpsMaxSpeed         // GPS-derived, spike-filtered
+              }
+
+              // Store extension flags on activity
+              ride.hasPowerTrack = track.hasPower
+              ride.hasHrTrack = track.hasHR
+              ride.hasCadenceTrack = track.hasCadence
+
+              // Compute Normalized Power from full-res track if power data present.
+              if (track.hasPower) {
+                ride.normalizedPower = calcNormalizedPower(track.points)
+                // Override empty CSV weightedAvgPower with GPS-derived NP
+                if (!ride.weightedAvgPower && ride.normalizedPower > 0) {
+                  ride.weightedAvgPower = ride.normalizedPower
+                }
+              }
+
+              // Downsample: keep every 5th point for storage efficiency.
+              // Power/HR/cad fields are included automatically (null-safe).
+              const sampled = track.points.filter((_, i) => i % 5 === 0)
+              ride.gpsTrack = { points: sampled, startLat: track.startLat, startLon: track.startLon }
+
+              // Hoist GPS start coordinates to activity root (required by weatherApi + geocodingApi).
+              ride.startLat = track.startLat
+              ride.startLon = track.startLon
+
+              // Wind analysis if weather data available
+              if (ride.weather?.winddirection != null) {
+                ride.windAnalysis = analyzeWindImpact(sampled, ride.weather.winddirection)
               }
             }
-
-            // Downsample: keep every 5th point for storage efficiency
-            // Power/HR/cad fields are included automatically (null-safe)
-            const sampled = track.points.filter((_, i) => i % 5 === 0)
-            ride.gpsTrack = { points: sampled, startLat: track.startLat, startLon: track.startLon }
-            // Hoist GPS start coordinates to activity root (required by weatherApi + geocodingApi)
-            ride.startLat = track.startLat
-            ride.startLon = track.startLon
-
-            // Wind analysis if weather data available
-            if (ride.weather?.winddirection != null) {
-              ride.windAnalysis = analyzeWindImpact(sampled, ride.weather.winddirection)
-            }
+          } catch (e) {
+            console.warn(`Track parse failed for ${ride.filename}:`, e.message)
           }
-        } catch (e) {
-          console.warn(`GPX parse failed for ${ride.filename}:`, e.message)
         }
+      } finally {
+        worker.terminate()
       }
 
       await saveActivitiesToDb(rides)
-      setProgress(`${rides.length} Rides importiert (${parsed} GPS-Tracks).`)
+      setProgress(`${rides.length} Rides importiert (${parsed} Tracks).`)
       setStatus(null)
       onImportComplete(rides)
     } catch (err) {
