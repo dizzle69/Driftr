@@ -1,11 +1,25 @@
 const MS_TO_KMH = 3.6
+/** Avoid huge prompts when the filter includes thousands of rides (cost + context window). */
+const MAX_ACTIVITIES_FOR_COACH = 2500
 
 /**
  * Build a compact German text summary of the given activities for the AI coach context.
- * Keeps output under ~800 tokens.
+ * Keeps output under ~800 tokens. Uses the most recent rides if the list exceeds MAX_ACTIVITIES_FOR_COACH.
  */
 export function buildCoachContext(activities) {
   if (!activities.length) return 'Keine Aktivitäten vorhanden.'
+
+  const sorted = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date))
+  const slice =
+    sorted.length > MAX_ACTIVITIES_FOR_COACH
+      ? sorted.slice(-MAX_ACTIVITIES_FOR_COACH)
+      : sorted
+  const truncatedNote =
+    sorted.length > MAX_ACTIVITIES_FOR_COACH
+      ? `\n(Hinweis: es gibt ${sorted.length} Fahrten im Filter; für den Kontext werden die letzten ${MAX_ACTIVITIES_FOR_COACH} verwendet.)\n`
+      : ''
+
+  activities = slice
 
   const totalKm = activities.reduce((s, a) => s + a.distance * 0.001, 0)
   const totalHm = activities.reduce((s, a) => s + (a.elevationGain || 0), 0)
@@ -80,5 +94,5 @@ export function buildCoachContext(activities) {
     fastestRide ? `Schnellste Ø-Geschwindigkeit: ${(fastestRide.avgSpeed * MS_TO_KMH).toFixed(1)} km/h (${fastestRide.name})` : null,
   ]
 
-  return lines.filter(l => l !== null).join('\n')
+  return truncatedNote + lines.filter(l => l !== null).join('\n')
 }

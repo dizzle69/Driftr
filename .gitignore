@@ -1,5 +1,8 @@
 node_modules/
+.lovable-ref/
 dist/
+playwright-report/
+test-results/
 .env
 .env.local
 *.log

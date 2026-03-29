@@ -63,7 +63,7 @@ export function parseGpx(gpxString) {
           cad: extractExt(ext, 'cad', 'Cadence'),
         }
       })
-    } catch (_) {
+    } catch {
       // Extension parsing is best-effort — silently skip on any error
     }
   }

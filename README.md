@@ -12,7 +12,13 @@ Local-first cycling analytics dashboard. Import your Strava ZIP export and get d
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build → dist/
+npm run lint     # ESLint
+npm run test:e2e # Playwright smoke (builds + preview on port 4174)
 ```
+
+Optional env vars: see [`.env.example`](.env.example) (e.g. `VITE_FORM_ENDPOINT` for the footer email form).
+
+GitHub Actions runs `lint`, `build`, and `test:e2e` on push/PR to `main` / `master`.
 
 ---
 

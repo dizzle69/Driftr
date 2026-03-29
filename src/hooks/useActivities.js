@@ -17,11 +17,21 @@ export function useActivities() {
     await saveActivitiesToDb(newActivities)
   }, [])
 
+  /** In-memory only (e.g. demo mode — do not write IndexedDB). */
+  const setActivitiesInMemory = useCallback((newActivities) => {
+    setActivities(newActivities)
+  }, [])
+
   /**
    * Kick off weather fetch for all activities
    * Updates state incrementally as each activity gets weather data
    */
-  const enrichWithWeather = useCallback(async (activitiesToEnrich) => {
+  /**
+   * @param {object} [options]
+   * @param {boolean} [options.persist=true] Set false for in-memory-only data (e.g. demo) so enrichment does not write IndexedDB.
+   */
+  const enrichWithWeather = useCallback(async (activitiesToEnrich, options = {}) => {
+    const { persist = true } = options
     setWeatherProgress({ done: 0, total: activitiesToEnrich.length })
 
     const enriched = await fetchWeatherBulk(
@@ -50,7 +60,11 @@ export function useActivities() {
       return { ...a, windAnalysis }
     })
 
-    await setAndPersist(withWind)
+    if (persist) {
+      await setAndPersist(withWind)
+    } else {
+      setActivities(withWind)
+    }
     setWeatherProgress(null)
     return withWind
   }, [setAndPersist])
@@ -59,7 +73,8 @@ export function useActivities() {
    * Kick off reverse geocoding for all activities.
    * Updates state incrementally as each activity gets a location string.
    */
-  const enrichWithGeocoding = useCallback(async (activitiesToEnrich) => {
+  const enrichWithGeocoding = useCallback(async (activitiesToEnrich, options = {}) => {
+    const { persist = true } = options
     setGeocodingProgress({ done: 0, total: activitiesToEnrich.length })
 
     const enriched = await fetchLocationsBulk(
@@ -67,7 +82,11 @@ export function useActivities() {
       (done, total) => setGeocodingProgress({ done, total })
     )
 
-    await setAndPersist(enriched)
+    if (persist) {
+      await setAndPersist(enriched)
+    } else {
+      setActivities(enriched)
+    }
     setGeocodingProgress(null)
     return enriched
   }, [setAndPersist])
@@ -83,6 +102,7 @@ export function useActivities() {
   return {
     activities,
     setActivities: setAndPersist,
+    setActivitiesInMemory,
     updateActivity,
     enrichWithWeather,
     weatherProgress,

@@ -1,5 +1,6 @@
 import { getWeatherFromCache, saveWeatherToCache } from '../db/indexedDb'
 
+// Outbound: Open-Meteo Historical API (see src/security/outbound-inventory.txt).
 const BASE_URL = 'https://archive-api.open-meteo.com/v1/archive'
 // Open-Meteo free tier: ~10.000 req/day → throttle to be safe
 const THROTTLE_MS = 200 // 5 req/sec max

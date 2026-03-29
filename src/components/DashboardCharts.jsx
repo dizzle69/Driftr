@@ -5,7 +5,7 @@ import {
   BarChart, Bar, Cell, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, Legend,
-  ComposedChart, Area
+  ComposedChart,
 } from 'recharts'
 
 const MS_TO_KMH = 3.6

@@ -4,6 +4,12 @@ import Papa from 'papaparse'
 import { saveActivitiesToDb } from '../db/indexedDb'
 import { analyzeWindImpact, calculateMaxSpeedFromGps } from '../utils/gpsCalc'
 
+/** Limits reduce accidental browser OOM / UI freeze from huge exports (no server-side validation). */
+const MAX_ZIP_FILE_BYTES = 450 * 1024 * 1024 // 450 MB archive
+const MAX_CSV_ACTIVITIES = 30_000
+const MAX_GPS_FILES_TO_PARSE = 4_000
+const MAX_TRACK_FILE_BYTES = 45 * 1024 * 1024 // single GPX/FIT inside ZIP
+
 /**
  * Calculate Normalized Power (NP) from GPS track points that include power values.
  * Algorithm: 30-second rolling average → raise to 4th power → mean → 4th root.
@@ -29,7 +35,7 @@ function calcNormalizedPower(points) {
   return Math.round(Math.pow(mean4th, 0.25))
 }
 
-export default function FileUploader({ onImportComplete }) {
+export default function FileUploader({ onImportComplete, onTryDemo }) {
   const [isDragging, setIsDragging] = useState(false)
   const [status, setStatus] = useState(null) // null | 'parsing' | 'error'
   const [progress, setProgress] = useState('')
@@ -39,6 +45,14 @@ export default function FileUploader({ onImportComplete }) {
     if (!file || !file.name.endsWith('.zip')) {
       setStatus('error')
       setProgress('Bitte eine .zip Datei hochladen (Strava Export)')
+      return
+    }
+
+    if (file.size > MAX_ZIP_FILE_BYTES) {
+      setStatus('error')
+      setProgress(
+        `ZIP zu groß (max. ${Math.round(MAX_ZIP_FILE_BYTES / (1024 * 1024))} MB). Bitte einen kleineren Export wählen.`
+      )
       return
     }
 
@@ -61,6 +75,12 @@ export default function FileUploader({ onImportComplete }) {
         header: true,
         skipEmptyLines: true,
       })
+
+      if (data.length > MAX_CSV_ACTIVITIES) {
+        throw new Error(
+          `Zu viele Zeilen in activities.csv (${data.length}). Maximum ${MAX_CSV_ACTIVITIES}.`
+        )
+      }
 
       setProgress(`${data.length} Aktivitäten gefunden. Wird gespeichert...`)
 
@@ -172,6 +192,12 @@ export default function FileUploader({ onImportComplete }) {
         return fn.endsWith('.gpx') || fn.endsWith('.fit') || fn.endsWith('.fit.gz')
       })
 
+      if (supportedRides.length > MAX_GPS_FILES_TO_PARSE) {
+        throw new Error(
+          `Zu viele GPS-Dateien (${supportedRides.length}). Maximum ${MAX_GPS_FILES_TO_PARSE} pro Import.`
+        )
+      }
+
       const worker = new Worker(new URL('../workers/parseWorker.js', import.meta.url), { type: 'module' })
       let parsed = 0
 
@@ -189,6 +215,13 @@ export default function FileUploader({ onImportComplete }) {
             const content = lower.endsWith('.gpx')
               ? await trackFile.async('string')
               : await trackFile.async('arraybuffer')
+
+            const byteSize =
+              typeof content === 'string' ? new Blob([content]).size : content.byteLength
+            if (byteSize > MAX_TRACK_FILE_BYTES) {
+              console.warn(`Skip track (too large ${byteSize} B): ${ride.filename}`)
+              continue
+            }
 
             const track = await new Promise((resolve, reject) => {
               function onMessage(e) {
@@ -270,15 +303,29 @@ export default function FileUploader({ onImportComplete }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">Deine Strava-Daten analysieren</h2>
+      <div className="text-center max-w-lg">
+        <h2 className="text-3xl font-bold mb-2">Deine Rad-Aktivitäten analysieren</h2>
         <p className="text-gray-400">
-          Lade deinen Strava-Export hoch. Alles läuft lokal in deinem Browser.
+          Lade einen Export (z. B. von Strava) als ZIP hoch. Verarbeitung erfolgt lokal in deinem Browser.
         </p>
         <p className="text-gray-500 text-sm mt-1">
           Strava → Einstellungen → Mein Konto → Archiv herunterladen
         </p>
+        <p className="text-gray-600 text-xs mt-3 leading-relaxed">
+          Driftr ist nicht mit Strava verbunden. Du bist für Inhalt und Nutzung deines Exports selbst verantwortlich.
+        </p>
       </div>
+
+      {typeof onTryDemo === 'function' && (
+        <button
+          type="button"
+          onClick={onTryDemo}
+          data-testid="btn-demo-data"
+          className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 text-sm font-medium transition"
+        >
+          Demo mit Beispieldaten
+        </button>
+      )}
 
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}

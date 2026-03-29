@@ -1,3 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 25% 4%;
+    --foreground: 0 0% 95%;
+
+    --card: 228 20% 8%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 228 20% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 162 100% 48%;
+    --primary-foreground: 228 25% 4%;
+
+    --secondary: 228 15% 14%;
+    --secondary-foreground: 0 0% 85%;
+
+    --muted: 228 15% 14%;
+    --muted-foreground: 228 10% 55%;
+
+    --accent: 228 15% 14%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 228 15% 16%;
+    --input: 228 15% 16%;
+    --ring: 162 100% 48%;
+
+    --radius: 0.75rem;
+
+    --glass: 228 20% 10%;
+    --glass-border: 228 15% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-glass-border rounded-xl;
+  }
+
+  .teal-glow {
+    box-shadow:
+      0 0 30px hsl(162 100% 48% / 0.15),
+      0 0 60px hsl(162 100% 48% / 0.05);
+  }
+
+  .teal-glow-strong {
+    box-shadow:
+      0 0 20px hsl(162 100% 48% / 0.3),
+      0 0 40px hsl(162 100% 48% / 0.1);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(162 100% 48%), hsl(180 100% 60%));
+  }
+
+  .landing-btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg px-8 py-3 text-base font-semibold
+      bg-primary text-primary-foreground transition hover:opacity-95 teal-glow-strong;
+  }
+
+  .landing-btn-outline {
+    @apply inline-flex items-center justify-center rounded-lg px-8 py-3 text-base font-medium
+      border border-border bg-transparent text-foreground transition hover:border-primary/40;
+  }
+
+  .landing-btn-sm {
+    @apply inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium
+      bg-primary text-primary-foreground transition hover:opacity-95 teal-glow;
+  }
+}

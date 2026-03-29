@@ -1,0 +1,26 @@
+Driftr — browser-initiated requests (privacy / security inventory)
+===============================================================
+
+All processing is local unless the user enables optional features.
+
+1) Open-Meteo Historical API — src/utils/weatherApi.js
+   When: user leaves "Wetterdaten nachladen" enabled and an activity needs weather.
+   Data: approximate start coordinates + time (query params only).
+
+2) Nominatim (OpenStreetMap) — src/utils/geocodingApi.js
+   When: user enables "Ortsnamen bestimmen" and an activity needs a place name.
+   Data: lat/lon in URL.
+
+3) Map tiles (e.g. CARTO) — used by Leaflet when user enables map tiles and views the route heatmap.
+   When: consent "Kartenkacheln laden" + heatmap visible.
+
+4) Formspree / custom form URL — src/components/EmailCapture.jsx
+   When: VITE_FORM_ENDPOINT is set and user submits the footer form.
+   Data: JSON body { email, source }.
+
+5) AI coach — src/components/AiCoach.jsx
+   When: user enters API key, accepts consent, and sends a message.
+   Targets: https://api.anthropic.com/v1/messages OR https://api.openai.com/v1/chat/completions
+   Data: user messages + compressed training context from buildCoachContext; key in request header only (not persisted).
+
+No first-party Driftr backend receives activity exports by default.

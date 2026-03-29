@@ -19,6 +19,15 @@ const MODELS = {
 
 const SYSTEM_PROMPT = `Du bist ein erfahrener Trainingscoach für Radsport. Du analysierst Strava-Trainingsdaten und gibst präzise, datenbasierte Antworten auf Deutsch. Sei konkret, nenne Zahlen aus den Daten und gib praxisnahe Empfehlungen. Antworte in maximal 5 Sätzen, außer der Nutzer fragt nach einer ausführlicheren Analyse.`
 
+/** Never surface API key-like substrings from provider errors to the UI (XSS / shoulder-surfing). */
+function safeCoachError(e) {
+  const m = e?.message || 'Unbekannter Fehler'
+  if (/sk-[a-zA-Z0-9_-]{10,}/i.test(m) || /Bearer\s+\S+/i.test(m)) {
+    return 'API-Fehler — Details wurden aus Sicherheitsgründen ausgeblendet.'
+  }
+  return m
+}
+
 async function callClaude(apiKey, model, messages, context) {
   const systemWithContext = `${SYSTEM_PROMPT}\n\nAktueller Trainingskontext:\n${context}`
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -31,7 +40,7 @@ async function callClaude(apiKey, model, messages, context) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1024,
+      max_tokens: 900,
       system: systemWithContext,
       messages,
     }),
@@ -54,7 +63,7 @@ async function callOpenAI(apiKey, model, messages, context) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1024,
+      max_tokens: 900,
       messages: [systemMsg, ...messages],
     }),
   })
@@ -130,7 +139,7 @@ export default function AiCoach({ activities }) {
       }
       setMessages(prev => [...prev, { role: 'assistant', content: reply }])
     } catch (e) {
-      setError(e.message)
+      setError(safeCoachError(e))
     } finally {
       setLoading(false)
     }
@@ -219,7 +228,9 @@ export default function AiCoach({ activities }) {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {messages.length === 0 && (
               <p className="text-gray-500 text-sm text-center mt-4">
-                Stell mir eine Frage zu deinem Training,<br />z. B. „Wie war mein Training diesen Monat?"
+                Stell mir eine Frage zu deinem Training,
+                <br />
+                z. B. „Wie war mein Training diesen Monat?“
               </p>
             )}
             {messages.map((m, i) => (

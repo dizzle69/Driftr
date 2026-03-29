@@ -2,6 +2,8 @@
  * Reverse geocoding via Nominatim (free OpenStreetMap API).
  * Rate limit: 1 request per second (Nominatim Terms of Service).
  * Results are cached in IndexedDB so repeated imports are instant.
+ *
+ * Outbound: Nominatim reverse endpoint (see src/security/outbound-inventory.txt).
  */
 import { getGeocodingFromCache, saveGeocodingToCache } from '../db/indexedDb'
 

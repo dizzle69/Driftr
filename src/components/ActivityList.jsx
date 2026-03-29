@@ -1,7 +1,7 @@
 import { useState, useMemo, Fragment } from 'react'
 import {
   ComposedChart, Area, Line, XAxis, YAxis, Tooltip,
-  CartesianGrid, ResponsiveContainer, Legend,
+  CartesianGrid, ResponsiveContainer,
 } from 'recharts'
 import { haversineDistance } from '../utils/gpsCalc'
 
@@ -82,34 +82,37 @@ function WindBar({ label, pct, color }) {
 function RideProfile({ activity }) {
   const [mode, setMode] = useState('speed') // 'speed' | 'power'
   const track = activity.gpsTrack
-  if (!track?.points?.length) return null
-
   const hasPower = activity.hasPowerTrack
 
   const chartData = useMemo(() => {
-    const pts = track.points
+    const pts = track?.points
+    if (!pts?.length) return []
+    const rows = []
     let cumDist = 0
-    return pts.map((p, i) => {
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i]
       if (i > 0) {
-        cumDist += haversineDistance(pts[i-1].lat, pts[i-1].lon, p.lat, p.lon) * METERS_TO_KM
+        cumDist += haversineDistance(pts[i - 1].lat, pts[i - 1].lon, p.lat, p.lon) * METERS_TO_KM
       }
-      // Speed between consecutive points (km/h)
       let speed = null
-      if (i > 0 && p.time && pts[i-1].time) {
-        const dt = (new Date(p.time) - new Date(pts[i-1].time)) / 1000
+      if (i > 0 && p.time && pts[i - 1].time) {
+        const dt = (new Date(p.time) - new Date(pts[i - 1].time)) / 1000
         if (dt > 0 && dt < 300) {
-          const dist = haversineDistance(pts[i-1].lat, pts[i-1].lon, p.lat, p.lon)
-          speed = Math.min((dist / dt) * MS_TO_KMH, 80) // cap at 80 for display
+          const dist = haversineDistance(pts[i - 1].lat, pts[i - 1].lon, p.lat, p.lon)
+          speed = Math.min((dist / dt) * MS_TO_KMH, 80)
         }
       }
-      return {
+      rows.push({
         dist: parseFloat(cumDist.toFixed(2)),
-        ele:  p.ele != null ? Math.round(p.ele) : null,
+        ele: p.ele != null ? Math.round(p.ele) : null,
         speed: speed != null ? parseFloat(speed.toFixed(1)) : null,
         power: p.power ?? null,
-      }
-    }).filter(d => d.ele != null)
+      })
+    }
+    return rows.filter(d => d.ele != null)
   }, [track])
+
+  if (!track?.points?.length) return null
 
   const showPower = hasPower && mode === 'power'
   const rightKey   = showPower ? 'power' : 'speed'
@@ -346,8 +349,6 @@ export default function ActivityList({ activities, selected, onSelect }) {
   }
 
   if (!activities.length) return null
-
-  const selectedActivity = selected ? activities.find(a => a.id === selected) : null
 
   return (
     <div>
