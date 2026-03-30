@@ -1,4 +1,4 @@
-# Strava Analytics
+# Driftr
 
 Local-first cycling analytics dashboard. Import your Strava ZIP export and get deep insights that Strava doesn't show you — all processed in your browser, nothing uploaded to any server.
 

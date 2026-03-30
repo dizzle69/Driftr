@@ -1,6 +1,6 @@
 import { openDB } from 'idb'
 
-const DB_NAME = 'strava-analytics'
+const DB_NAME = 'driftr'
 const DB_VERSION = 2
 
 function getDb() {

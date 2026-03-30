@@ -41,7 +41,7 @@ export async function fetchLocationForCoords(lat, lon) {
     headers: {
       'Accept-Language': 'de,en',
       // Nominatim requires a User-Agent identifying the application
-      'User-Agent': 'strava-analytics-local/1.0',
+      'User-Agent': 'driftr-local/1.0',
     },
   })
 
