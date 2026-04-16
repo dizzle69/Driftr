@@ -54,7 +54,7 @@ export default function EmailCapture() {
   if (status === 'ok') {
     return (
       <p className="text-xs text-green-400 text-center sm:text-left">
-        Danke — wir melden uns, sobald es Neuigkeiten gibt.
+        Thanks — we will reach out when there is an update.
       </p>
     )
   }
@@ -66,7 +66,7 @@ export default function EmailCapture() {
         type="email"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        placeholder="E-Mail"
+        placeholder="Email"
         required
         disabled={status === 'sending'}
         className="flex-1 min-w-0 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-xs placeholder-gray-600 focus:outline-none focus:border-strava"
@@ -76,10 +76,10 @@ export default function EmailCapture() {
         disabled={status === 'sending'}
         className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium border border-gray-700 transition disabled:opacity-50"
       >
-        {status === 'sending' ? '…' : 'Eintragen'}
+        {status === 'sending' ? '…' : 'Join'}
       </button>
       {status === 'err' && (
-        <span className="text-xs text-red-400">Senden fehlgeschlagen.</span>
+        <span className="text-xs text-red-400">Could not submit. Please try again.</span>
       )}
     </form>
   )

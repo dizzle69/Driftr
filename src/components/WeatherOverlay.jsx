@@ -11,25 +11,25 @@ export default function WeatherOverlay({ weather }) {
   if (!weather) {
     return (
       <div className="text-gray-500 text-sm">
-        Keine Wetterdaten verfügbar.
+        No weather data available.
       </div>
     )
   }
 
   const items = [
-    { label: 'Temperatur', value: `${Math.round(weather.temperature)}°C`, icon: '🌡️' },
+    { label: 'Temperature', value: `${Math.round(weather.temperature)}°C`, icon: '🌡️' },
     weather.windspeed != null && {
       label: 'Wind',
       value: `${Math.round(weather.windspeed)} km/h ${degToCompass(weather.winddirection)}`,
       icon: '💨'
     },
     weather.precipitation != null && {
-      label: 'Niederschlag',
+      label: 'Precipitation',
       value: `${Number(weather.precipitation).toFixed(1)} mm`,
       icon: '🌧️'
     },
     weather.humidity != null && {
-      label: 'Luftfeuchtigkeit',
+      label: 'Humidity',
       value: `${Math.round(weather.humidity * 100)}%`,
       icon: '💧'
     },

@@ -14,7 +14,7 @@ function formatDuration(seconds) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 
-const WIND_DIR_LABELS = ['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW']
+const WIND_DIR_LABELS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
 
 function degToCompass(deg) {
   if (deg == null || !Number.isFinite(deg)) return '—'
@@ -25,16 +25,16 @@ function WindBadge({ windAnalysis }) {
   if (!windAnalysis) return <span className="text-gray-600 text-xs">—</span>
   const { headwindPct } = windAnalysis
   const color = headwindPct > 50 ? 'text-red-400' : headwindPct > 25 ? 'text-yellow-400' : 'text-green-400'
-  return <span className={`text-xs font-mono ${color}`}>{headwindPct}% GW</span>
+  return <span className={`text-xs font-mono ${color}`}>{headwindPct}% HW</span>
 }
 
 // Column definitions for sorting
 const COLUMNS = [
-  { key: 'date',     label: 'Datum',   align: 'left' },
+  { key: 'date',     label: 'Date',   align: 'left' },
   { key: 'name',     label: 'Name',    align: 'left' },
-  { key: 'location', label: 'Ort',     align: 'left' },
-  { key: 'distance', label: 'Distanz', align: 'right' },
-  { key: 'movingTime', label: 'Zeit', align: 'right' },
+  { key: 'location', label: 'Location',     align: 'left' },
+  { key: 'distance', label: 'Distance', align: 'right' },
+  { key: 'movingTime', label: 'Time', align: 'right' },
   { key: 'avgSpeed', label: 'Ø Speed', align: 'right' },
   { key: 'elevationGain', label: 'Hm', align: 'right' },
   { key: 'avgWatts', label: 'Ø W', align: 'right' },
@@ -166,7 +166,7 @@ function RideProfile({ activity }) {
             labelStyle={{ color: '#9ca3af', fontSize: 11 }}
             labelFormatter={v => `${v} km`}
             formatter={(val, name) =>
-              name === 'Höhe' ? [`${val} m`, name]
+              name === 'Elevation' ? [`${val} m`, name]
               : [`${val} ${rightLabel}`, name]
             }
           />
@@ -174,7 +174,7 @@ function RideProfile({ activity }) {
             yAxisId="ele"
             type="monotone"
             dataKey="ele"
-            name="Höhe"
+            name="Elevation"
             fill="#374151"
             stroke="#6b7280"
             strokeWidth={1}
@@ -211,7 +211,7 @@ function DetailPanel({ activity }) {
     <span className="flex items-center gap-1.5">
       {maxSpd} km/h
       <span
-        title={`GPS-Spike gefiltert. Strava CSV: ${csvMaxSpd} km/h`}
+                    title={`GPS spike filtered. Strava CSV: ${csvMaxSpd} km/h`}
         className="text-yellow-400 text-xs cursor-help"
       >
         ⚠️ GPS
@@ -225,38 +225,38 @@ function DetailPanel({ activity }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Stats */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Leistung</h4>
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Performance</h4>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <Stat label="Distanz" value={`${km} km`} />
-          <Stat label="Dauer" value={formatDuration(a.movingTime)} />
+          <Stat label="Distance" value={`${km} km`} />
+          <Stat label="Duration" value={formatDuration(a.movingTime)} />
           <Stat label="Ø Speed" value={`${speed} km/h`} />
           <Stat label="Max Speed" value={maxSpeedValue} />
-          <Stat label="Höhenmeter" value={a.elevationGain > 0 ? `${Math.round(a.elevationGain)} m` : '—'} />
-          <Stat label="Max Steigung" value={a.maxGrade > 0 ? `${a.maxGrade.toFixed(1)}%` : '—'} />
+          <Stat label="Elevation gain" value={a.elevationGain > 0 ? `${Math.round(a.elevationGain)} m` : '—'} />
+          <Stat label="Max grade" value={a.maxGrade > 0 ? `${a.maxGrade.toFixed(1)}%` : '—'} />
           <Stat label="Ø Watt" value={a.avgWatts > 0 ? `${Math.round(a.avgWatts)} W` : '—'} />
           <Stat label="Max Watt" value={a.maxWatts > 0 ? `${Math.round(a.maxWatts)} W` : '—'} />
           <Stat label="Ø HR" value={a.avgHeartRate > 0 ? `${Math.round(a.avgHeartRate)} bpm` : '—'} />
           <Stat label="Max HR" value={a.maxHeartRate > 0 ? `${Math.round(a.maxHeartRate)} bpm` : '—'} />
-          <Stat label="Startort" value={a.startLocation || '—'} />
-          <Stat label="Kalorien" value={a.calories > 0 ? `${Math.round(a.calories)} kcal` : '—'} />
+          <Stat label="Start location" value={a.startLocation || '—'} />
+          <Stat label="Calories" value={a.calories > 0 ? `${Math.round(a.calories)} kcal` : '—'} />
           <Stat label="Rel. Effort" value={a.relativeEffort > 0 ? Math.round(a.relativeEffort) : '—'} />
         </div>
       </div>
 
       {/* Weather */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Wetter</h4>
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Weather</h4>
         {a.weather ? (
           <>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <Stat label="Temperatur" value={`${Math.round(a.weather.temperature)}°C`} />
-            <Stat label="Gefühlt" value={a.weather.apparentTemperature ? `${Math.round(a.weather.apparentTemperature)}°C` : '—'} />
+            <Stat label="Temperature" value={`${Math.round(a.weather.temperature)}°C`} />
+            <Stat label="Feels like" value={a.weather.apparentTemperature ? `${Math.round(a.weather.apparentTemperature)}°C` : '—'} />
             <Stat label="Wind" value={a.weather.windspeed ? `${Math.round(a.weather.windspeed)} km/h` : '—'} />
-            <Stat label="Böen" value={a.weather.windgust ? `${Math.round(a.weather.windgust)} km/h` : '—'} />
-            <Stat label="Luftfeuchte" value={a.weather.humidity ? `${Math.round(a.weather.humidity)}%` : '—'} />
-            <Stat label="Bewölkung" value={a.weather.cloudCover != null ? `${Math.round(a.weather.cloudCover)}%` : '—'} />
+            <Stat label="Gusts" value={a.weather.windgust ? `${Math.round(a.weather.windgust)} km/h` : '—'} />
+            <Stat label="Humidity" value={a.weather.humidity ? `${Math.round(a.weather.humidity)}%` : '—'} />
+            <Stat label="Cloud cover" value={a.weather.cloudCover != null ? `${Math.round(a.weather.cloudCover)}%` : '—'} />
             <Stat label="UV-Index" value={a.weather.uvIndex > 0 ? a.weather.uvIndex : '—'} />
-            <Stat label="Niederschlag" value={a.weather.precipitation > 0 ? `${a.weather.precipitation} mm` : '—'} />
+            <Stat label="Precipitation" value={a.weather.precipitation > 0 ? `${a.weather.precipitation} mm` : '—'} />
             {a.weather.condition && (
               <div className="col-span-2 text-gray-400 text-xs mt-1">{a.weather.condition}</div>
             )}
@@ -264,7 +264,7 @@ function DetailPanel({ activity }) {
           {a.weather.samples && (
             <div className="mt-4">
               <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Stichproben (Start/Mitte/Ende)
+                Samples (start/mid/end)
               </h5>
               <div className="grid grid-cols-3 gap-3">
                 {(['start', 'mid', 'end']).map(k => {
@@ -273,13 +273,13 @@ function DetailPanel({ activity }) {
                   const temp = s.temperature != null ? `${Math.round(s.temperature)}°C` : '—'
                   const windDir = s.winddirection != null ? `${Math.round(s.winddirection)}° ${degToCompass(s.winddirection)}` : '—'
                   const windSpeed = s.windspeed != null ? `${Math.round(s.windspeed)} km/h` : '—'
-                  const label = k === 'start' ? 'Start' : k === 'mid' ? 'Mitte' : 'Ende'
+                  const label = k === 'start' ? 'Start' : k === 'mid' ? 'Mid' : 'End'
                   return (
                     <div key={k} className="bg-gray-800/40 border border-gray-700 rounded-lg px-3 py-2">
                       <div className="text-xs font-semibold text-gray-200 mb-1">{label}</div>
                       <div className="text-xs text-gray-300">Temp: {temp}</div>
                       <div className="text-xs text-gray-300">Wind: {windSpeed}</div>
-                      <div className="text-xs text-gray-300">Richtung: {windDir}</div>
+                      <div className="text-xs text-gray-300">Direction: {windDir}</div>
                     </div>
                   )
                 })}
@@ -288,26 +288,26 @@ function DetailPanel({ activity }) {
           )}
           </>
         ) : (
-          <p className="text-gray-600 text-sm">Keine Wetterdaten</p>
+          <p className="text-gray-600 text-sm">No weather data</p>
         )}
       </div>
 
       {/* Wind Analysis */}
       <div>
-        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Windanalyse</h4>
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Wind analysis</h4>
         {a.windAnalysis ? (
           <div className="space-y-3">
-            <WindBar label="Gegenwind" pct={a.windAnalysis.headwindPct} color="bg-red-500" />
-            <WindBar label="Rückenwind" pct={a.windAnalysis.tailwindPct} color="bg-green-500" />
-            <WindBar label="Seitenwind" pct={a.windAnalysis.crosswindPct} color="bg-yellow-500" />
+            <WindBar label="Headwind" pct={a.windAnalysis.headwindPct} color="bg-red-500" />
+            <WindBar label="Tailwind" pct={a.windAnalysis.tailwindPct} color="bg-green-500" />
+            <WindBar label="Crosswind" pct={a.windAnalysis.crosswindPct} color="bg-yellow-500" />
           </div>
         ) : (
-          <p className="text-gray-600 text-sm">Keine Windanalyse (kein GPS-Track)</p>
+          <p className="text-gray-600 text-sm">No wind analysis (no GPS track)</p>
         )}
 
         {a.gear && (
           <div className="mt-4">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Ausrüstung</h4>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Gear</h4>
             <p className="text-gray-300 text-sm">{a.gear}</p>
           </div>
         )}
@@ -353,7 +353,7 @@ export default function ActivityList({ activities, selected, onSelect }) {
   return (
     <div>
       <h2 className="text-lg font-semibold mb-3 text-gray-200">
-        Alle Rides <span className="text-gray-500 font-normal text-sm">({activities.length})</span>
+        All rides <span className="text-gray-500 font-normal text-sm">({activities.length})</span>
       </h2>
       <div className="overflow-x-auto rounded-xl border border-gray-800">
         <table className="w-full text-sm">
@@ -384,7 +384,7 @@ export default function ActivityList({ activities, selected, onSelect }) {
                   `}
                 >
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                    {new Date(a.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                    {new Date(a.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                   </td>
                   <td className="px-4 py-3 font-medium max-w-xs truncate">{a.name}</td>
                   <td className="px-4 py-3 text-gray-400 whitespace-nowrap">

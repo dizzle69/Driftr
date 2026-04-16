@@ -2,6 +2,8 @@
 
 Local-first cycling analytics dashboard. Import your Strava ZIP export and get deep insights that Strava doesn't show you — all processed in your browser, nothing uploaded to any server.
 
+Driftr is independent and not affiliated with Strava. Strava is a trademark of its owner.
+
 ![Stack](https://img.shields.io/badge/React-18.3-61DAFB?logo=react) ![Stack](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite) ![Stack](https://img.shields.io/badge/Tailwind-3.4-38BDF8?logo=tailwindcss)
 
 ---
@@ -19,6 +21,30 @@ npm run test:e2e # Playwright smoke (builds + preview on port 4174)
 Optional env vars: see [`.env.example`](.env.example) (e.g. `VITE_FORM_ENDPOINT` for the footer email form).
 
 GitHub Actions runs `lint`, `build`, and `test:e2e` on push/PR to `main` / `master`.
+
+---
+
+## Private Tester Deploy (Vercel)
+
+For quick friend testing on Vercel:
+
+1. Import this repo in Vercel.
+2. Use build command `npm run build`.
+3. Use output directory `dist`.
+4. Keep SPA rewrites enabled via `vercel.json` so `/app`, `/impressum`, and `/datenschutz` work on direct reloads.
+
+After deploy, validate:
+- `/`
+- `/app`
+- `/impressum`
+- `/datenschutz`
+
+Use the feedback template in [`TESTER_FEEDBACK_TEMPLATE.md`](./TESTER_FEEDBACK_TEMPLATE.md) when sharing the test link.
+
+Optional tester-only gate:
+- Set `VITE_TESTER_ACCESS_CODE` in Vercel Production env vars.
+- If set, the app shows a code gate before loading routes.
+- If not set, the app remains publicly accessible.
 
 ---
 

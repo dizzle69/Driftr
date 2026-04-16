@@ -5,7 +5,7 @@ import { saveActivitiesToDb } from '../db/indexedDb'
 import { analyzeWindImpact, calculateMaxSpeedFromGps } from '../utils/gpsCalc'
 
 /** Limits reduce accidental browser OOM / UI freeze from huge exports (no server-side validation). */
-const MAX_ZIP_FILE_BYTES = 450 * 1024 * 1024 // 450 MB archive
+const MAX_ZIP_FILE_BYTES = 700 * 1024 * 1024 // 700 MB archive
 const MAX_CSV_ACTIVITIES = 30_000
 const MAX_GPS_FILES_TO_PARSE = 4_000
 const MAX_TRACK_FILE_BYTES = 45 * 1024 * 1024 // single GPX/FIT inside ZIP
@@ -44,20 +44,20 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
   async function handleFile(file) {
     if (!file || !file.name.endsWith('.zip')) {
       setStatus('error')
-      setProgress('Bitte eine .zip Datei hochladen (Strava Export)')
+      setProgress('Please upload a .zip file (Strava export)')
       return
     }
 
     if (file.size > MAX_ZIP_FILE_BYTES) {
       setStatus('error')
       setProgress(
-        `ZIP zu groß (max. ${Math.round(MAX_ZIP_FILE_BYTES / (1024 * 1024))} MB). Bitte einen kleineren Export wählen.`
+        `ZIP is too large (max ${Math.round(MAX_ZIP_FILE_BYTES / (1024 * 1024))} MB). Please choose a smaller export.`
       )
       return
     }
 
     setStatus('parsing')
-    setProgress('ZIP wird entpackt...')
+    setProgress('Extracting ZIP...')
 
     try {
       const zip = await JSZip.loadAsync(file)
@@ -66,9 +66,9 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
       const csvFile = Object.values(zip.files).find(f =>
         f.name.endsWith('activities.csv')
       )
-      if (!csvFile) throw new Error('activities.csv nicht gefunden im ZIP')
+      if (!csvFile) throw new Error('activities.csv was not found in the ZIP')
 
-      setProgress('Aktivitäten werden gelesen...')
+      setProgress('Reading activities...')
       const csvText = await csvFile.async('string')
 
       const { data } = Papa.parse(csvText, {
@@ -78,11 +78,11 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
 
       if (data.length > MAX_CSV_ACTIVITIES) {
         throw new Error(
-          `Zu viele Zeilen in activities.csv (${data.length}). Maximum ${MAX_CSV_ACTIVITIES}.`
+          `Too many rows in activities.csv (${data.length}). Maximum is ${MAX_CSV_ACTIVITIES}.`
         )
       }
 
-      setProgress(`${data.length} Aktivitäten gefunden. Wird gespeichert...`)
+      setProgress(`${data.length} activities found. Saving...`)
 
       // NOTE: PapaParse uses the FIRST of two duplicate 'Distance' columns.
       // That first column is already in km → multiply by 1000 to store as meters.
@@ -194,7 +194,7 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
 
       if (supportedRides.length > MAX_GPS_FILES_TO_PARSE) {
         throw new Error(
-          `Zu viele GPS-Dateien (${supportedRides.length}). Maximum ${MAX_GPS_FILES_TO_PARSE} pro Import.`
+          `Too many GPS files (${supportedRides.length}). Maximum is ${MAX_GPS_FILES_TO_PARSE} per import.`
         )
       }
 
@@ -209,7 +209,7 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
           if (!trackFile) continue
 
           try {
-            setProgress(`Tracks parsen... ${++parsed}/${supportedRides.length}`)
+            setProgress(`Parsing tracks... ${++parsed}/${supportedRides.length}`)
 
             const lower = String(ride.filename || '').toLowerCase()
             const content = lower.endsWith('.gpx')
@@ -285,7 +285,7 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
       }
 
       await saveActivitiesToDb(rides)
-      setProgress(`${rides.length} Rides importiert (${parsed} Tracks).`)
+      setProgress(`Imported ${rides.length} rides (${parsed} tracks).`)
       setStatus(null)
       onImportComplete(rides)
     } catch (err) {
@@ -304,15 +304,15 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
       <div className="text-center max-w-lg">
-        <h2 className="text-3xl font-bold mb-2">Deine Rad-Aktivitäten analysieren</h2>
+        <h2 className="text-3xl font-bold mb-2">Analyze your cycling activities</h2>
         <p className="text-gray-400">
-          Lade einen Export (z. B. von Strava) als ZIP hoch. Verarbeitung erfolgt lokal in deinem Browser.
+          Upload an export ZIP (for example from Strava). Processing runs locally in your browser.
         </p>
         <p className="text-gray-500 text-sm mt-1">
-          Strava → Einstellungen → Mein Konto → Archiv herunterladen
+          Strava → Settings → My Account → Download Archive
         </p>
         <p className="text-gray-600 text-xs mt-3 leading-relaxed">
-          Driftr ist nicht mit Strava verbunden. Du bist für Inhalt und Nutzung deines Exports selbst verantwortlich.
+          Driftr is independent and not affiliated with Strava. Strava is a trademark of its owner. You are responsible for the content and lawful use of your export.
         </p>
       </div>
 
@@ -323,7 +323,7 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
           data-testid="btn-demo-data"
           className="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-800 text-sm font-medium transition"
         >
-          Demo mit Beispieldaten
+          Try demo data
         </button>
       )}
 
@@ -339,8 +339,8 @@ export default function FileUploader({ onImportComplete, onTryDemo }) {
         `}
       >
         <span className="text-4xl">📦</span>
-        <p className="font-medium">ZIP hier hinziehen oder klicken</p>
-        <p className="text-gray-500 text-sm">export.zip von Strava</p>
+        <p className="font-medium">Drop your ZIP here or click to upload</p>
+        <p className="text-gray-500 text-sm">Strava export ZIP</p>
         <input
           ref={inputRef}
           type="file"

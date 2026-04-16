@@ -10,10 +10,10 @@ export function LandingFooter() {
             App
           </Link>
           <Link to="/impressum" className="hover:text-foreground transition-colors">
-            Impressum
+            Imprint
           </Link>
           <Link to="/datenschutz" className="hover:text-foreground transition-colors">
-            Datenschutz
+            Privacy
           </Link>
         </div>
       </div>

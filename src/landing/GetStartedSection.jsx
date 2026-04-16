@@ -7,7 +7,7 @@ const bullets = [
   'IndexedDB storage on your device — reset anytime',
   'Optional Open-Meteo & Nominatim (your choice)',
   'AI coach: bring your own API key, calls from the browser',
-  'Impressum & Datenschutz linked in the app footer',
+  'Imprint & Privacy pages linked in the app footer',
 ]
 
 export function GetStartedSection() {
@@ -39,7 +39,7 @@ export function GetStartedSection() {
               Open Driftr
             </Link>
             <p className="mt-3 text-xs text-muted-foreground">
-              You can add Gumroad or a license layer later without changing this flow.
+              You can add Stripe checkout or a license layer later without changing this flow.
             </p>
           </div>
         </AnimatedSection>

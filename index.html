@@ -1,16 +1,28 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Driftr — Rad- und Trainingsanalysen aus deinem Export, privat im Browser. Wetter, Strecken, Fitness und mehr." />
-    <meta property="og:title" content="Driftr — Rad-Analysen lokal" />
-    <meta property="og:description" content="Auswertungen für deine Rad-Aktivitäten — Verarbeitung im Browser, kein Upload deiner Daten auf unsere Server." />
+    <meta name="description" content="Driftr is a local-first cycling analytics app. Import your Strava ZIP export and explore weather, route, fitness, and performance insights in your browser." />
+    <link rel="canonical" href="https://driftr-zeta.vercel.app/" />
+    <meta property="og:title" content="Driftr — Local-First Cycling Analytics" />
+    <meta property="og:description" content="Analyze your Strava ZIP export with route, weather, and fitness insights. Processing runs in your browser by default." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://driftr-zeta.vercel.app/" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Driftr — Rad-Analysen lokal" />
-    <meta name="twitter:description" content="Auswertungen für deine Rad-Aktivitäten — lokal im Browser." />
-    <title>Driftr — Rad-Analysen</title>
+    <meta name="twitter:title" content="Driftr — Local-First Cycling Analytics" />
+    <meta name="twitter:description" content="Import your Strava ZIP export and analyze your rides locally in the browser." />
+    <title>Driftr — Cycling Analytics</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Driftr",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "Web",
+        "description": "Local-first cycling analytics dashboard for Strava ZIP exports."
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

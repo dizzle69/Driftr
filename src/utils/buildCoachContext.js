@@ -3,11 +3,11 @@ const MS_TO_KMH = 3.6
 const MAX_ACTIVITIES_FOR_COACH = 2500
 
 /**
- * Build a compact German text summary of the given activities for the AI coach context.
+ * Build a compact English text summary of the given activities for AI coach context.
  * Keeps output under ~800 tokens. Uses the most recent rides if the list exceeds MAX_ACTIVITIES_FOR_COACH.
  */
 export function buildCoachContext(activities) {
-  if (!activities.length) return 'Keine Aktivitäten vorhanden.'
+  if (!activities.length) return 'No activities available.'
 
   const sorted = [...activities].sort((a, b) => new Date(a.date) - new Date(b.date))
   const slice =
@@ -16,7 +16,7 @@ export function buildCoachContext(activities) {
       : sorted
   const truncatedNote =
     sorted.length > MAX_ACTIVITIES_FOR_COACH
-      ? `\n(Hinweis: es gibt ${sorted.length} Fahrten im Filter; für den Kontext werden die letzten ${MAX_ACTIVITIES_FOR_COACH} verwendet.)\n`
+      ? `\n(Note: there are ${sorted.length} rides in this filter; context uses the latest ${MAX_ACTIVITIES_FOR_COACH}.)\n`
       : ''
 
   activities = slice
@@ -67,31 +67,31 @@ export function buildCoachContext(activities) {
 
   // Date range
   const dates = activities.map(a => new Date(a.date)).filter(d => !isNaN(d))
-  const minDate = new Date(Math.min(...dates)).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  const maxDate = new Date(Math.max(...dates)).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const minDate = new Date(Math.min(...dates)).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const maxDate = new Date(Math.max(...dates)).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   const lines = [
-    `TRAININGSDATEN (${minDate} – ${maxDate})`,
-    `Fahrten: ${activities.length}`,
-    `Distanz gesamt: ${Math.round(totalKm).toLocaleString('de-DE')} km`,
-    `Höhenmeter gesamt: ${Math.round(totalHm).toLocaleString('de-DE')} m`,
-    `Fahrzeit gesamt: ${Math.round(totalTime / 3600)} h`,
-    `Ø Geschwindigkeit: ${avgSpeed.toFixed(1)} km/h`,
-    avgHR    ? `Ø Herzfrequenz: ${avgHR} bpm`       : null,
-    avgCad   ? `Ø Trittfrequenz: ${avgCad} rpm`     : null,
-    avgWatts ? `Ø Leistung: ${avgWatts} W`           : null,
+    `TRAINING DATA (${minDate} – ${maxDate})`,
+    `Rides: ${activities.length}`,
+    `Total distance: ${Math.round(totalKm).toLocaleString('en-US')} km`,
+    `Total elevation gain: ${Math.round(totalHm).toLocaleString('en-US')} m`,
+    `Total moving time: ${Math.round(totalTime / 3600)} h`,
+    `Avg speed: ${avgSpeed.toFixed(1)} km/h`,
+    avgHR    ? `Avg heart rate: ${avgHR} bpm`       : null,
+    avgCad   ? `Avg cadence: ${avgCad} rpm`     : null,
+    avgWatts ? `Avg power: ${avgWatts} W`           : null,
     '',
-    'MONATLICHE DISTANZ (letzte 6 Monate):',
+    'MONTHLY DISTANCE (last 6 months):',
     monthlyLines,
     '',
-    'FITNESS-METRIKEN (CTL/ATL/TSB):',
-    `CTL (Fitness, 42-Tage-EMA): ${ctl.toFixed(1)}`,
-    `ATL (Erschöpfung, 7-Tage-EMA): ${atl.toFixed(1)}`,
-    `TSB (Form = CTL−ATL): ${tsb > 0 ? '+' : ''}${tsb.toFixed(1)}`,
+    'FITNESS METRICS (CTL/ATL/TSB):',
+    `CTL (fitness, 42-day EMA): ${ctl.toFixed(1)}`,
+    `ATL (fatigue, 7-day EMA): ${atl.toFixed(1)}`,
+    `TSB (form = CTL−ATL): ${tsb > 0 ? '+' : ''}${tsb.toFixed(1)}`,
     '',
-    'PERSÖNLICHE REKORDE:',
-    longestRide ? `Längste Fahrt: ${(longestRide.distance * 0.001).toFixed(1)} km (${longestRide.name}, ${longestRide.date.slice(0, 10)})` : null,
-    fastestRide ? `Schnellste Ø-Geschwindigkeit: ${(fastestRide.avgSpeed * MS_TO_KMH).toFixed(1)} km/h (${fastestRide.name})` : null,
+    'PERSONAL RECORDS:',
+    longestRide ? `Longest ride: ${(longestRide.distance * 0.001).toFixed(1)} km (${longestRide.name}, ${longestRide.date.slice(0, 10)})` : null,
+    fastestRide ? `Fastest average speed: ${(fastestRide.avgSpeed * MS_TO_KMH).toFixed(1)} km/h (${fastestRide.name})` : null,
   ]
 
   return truncatedNote + lines.filter(l => l !== null).join('\n')

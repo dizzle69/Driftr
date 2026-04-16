@@ -14,15 +14,15 @@ test.describe('Driftr smoke', () => {
     await expect(page.getByTestId('btn-demo-data')).toBeVisible({ timeout: 60_000 })
     await page.getByTestId('btn-demo-data').click()
     await expect(page.getByTestId('dashboard-heading')).toBeVisible()
-    await expect(page.getByText(/Demo-Daten/i)).toBeVisible()
+    await expect(page.getByText(/demo data/i)).toBeVisible()
   })
 
   test('legal pages render', async ({ page }) => {
     await page.goto('/impressum')
-    await expect(page.getByRole('heading', { level: 1, name: /Impressum/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /Imprint/i })).toBeVisible()
     await page.goto('/datenschutz')
     await expect(
-      page.getByRole('heading', { level: 1, name: /Datenschutzerklärung/i })
+      page.getByRole('heading', { level: 1, name: /Privacy Policy/i })
     ).toBeVisible()
   })
 })

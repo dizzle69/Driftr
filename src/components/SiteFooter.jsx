@@ -10,10 +10,10 @@ export default function SiteFooter() {
             Home
           </Link>
           <Link to="/datenschutz" className="hover:text-gray-300 transition">
-            Datenschutz
+            Privacy
           </Link>
           <Link to="/impressum" className="hover:text-gray-300 transition">
-            Impressum
+            Imprint
           </Link>
           <span className="text-gray-600">© {new Date().getFullYear()} Driftr</span>
         </div>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 const TYPE_LABELS = {
-  Ride: 'Straße',
+  Ride: 'Road',
   VirtualRide: 'Indoor',
   EBikeRide: 'E-Bike',
   GravelRide: 'Gravel',
@@ -9,17 +9,17 @@ const TYPE_LABELS = {
 }
 
 const PRESETS = [
-  { label: 'Alle', value: 'all' },
-  { label: '7 Tage', value: '7d' },
-  { label: '30 Tage', value: '30d' },
-  { label: '90 Tage', value: '90d' },
-  { label: '6 Monate', value: '6m' },
-  { label: '1 Jahr', value: '1y' },
+  { label: 'All', value: 'all' },
+  { label: '7 days', value: '7d' },
+  { label: '30 days', value: '30d' },
+  { label: '90 days', value: '90d' },
+  { label: '6 months', value: '6m' },
+  { label: '1 year', value: '1y' },
   { label: 'Custom', value: 'custom' },
 ]
 
 const DISTANCE_PRESETS = [
-  { label: 'Alle', value: 0 },
+  { label: 'All', value: 0 },
   { label: '>5 km', value: 5 },
   { label: '>10 km', value: 10 },
   { label: '>20 km', value: 20 },
@@ -62,7 +62,7 @@ export default function TimeframeFilter({ filter, onChange, activities }) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-gray-500 text-sm mr-1">Zeitraum:</span>
+        <span className="text-gray-500 text-sm mr-1">Time range:</span>
         {PRESETS.map(p => (
           <button
             key={p.value}
@@ -102,7 +102,7 @@ export default function TimeframeFilter({ filter, onChange, activities }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-gray-500 text-sm mr-1">Mindestdistanz:</span>
+        <span className="text-gray-500 text-sm mr-1">Minimum distance:</span>
         {DISTANCE_PRESETS.map(p => (
           <button
             key={p.value}
@@ -123,7 +123,7 @@ export default function TimeframeFilter({ filter, onChange, activities }) {
 
       {availableTypes.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-gray-500 text-sm mr-1">Typ:</span>
+          <span className="text-gray-500 text-sm mr-1">Type:</span>
           {availableTypes.map(type => (
             <button
               key={type}

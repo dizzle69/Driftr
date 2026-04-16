@@ -116,15 +116,15 @@ export default function SummaryBar({ activities }) {
     const activeStreak = currentStreak(activities)
     const consistency  = weeklyConsistency(activities)
 
-    const fmt = (n) => n.toLocaleString('de-DE')
+    const fmt = (n) => n.toLocaleString('en-US')
 
     return [
-      { value: `${fmt(totalKm)} km`,  label: 'Gesamt',           accent: false },
-      { value: `${fmt(totalHm)} m`,   label: 'Höhenmeter',       accent: false },
+      { value: `${fmt(totalKm)} km`,  label: 'Total',            accent: false },
+      { value: `${fmt(totalHm)} m`,   label: 'Elevation gain',   accent: false },
       { value: rides,                 label: 'Rides',            accent: false },
-      { value: `${bestStreak} T`,     label: 'Längste Serie',    accent: false },
-      { value: `${activeStreak} T`,   label: 'Akt. Serie',       accent: activeStreak > 0 },
-      { value: `${consistency} %`,    label: 'Wöch. Konsistenz', accent: false },
+      { value: `${bestStreak} d`,     label: 'Longest streak',   accent: false },
+      { value: `${activeStreak} d`,   label: 'Current streak',   accent: activeStreak > 0 },
+      { value: `${consistency} %`,    label: 'Weekly consistency', accent: false },
     ]
   }, [activities])
 

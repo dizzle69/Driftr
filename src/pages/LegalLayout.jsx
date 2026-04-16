@@ -9,7 +9,7 @@ export default function LegalLayout({ title, children }) {
             Driftr
           </Link>
           <Link to="/app" className="text-sm text-gray-400 hover:text-white transition">
-            ← Zum Dashboard
+            ← Back to Dashboard
           </Link>
         </div>
       </header>
@@ -18,11 +18,11 @@ export default function LegalLayout({ title, children }) {
         {children}
       </main>
       <footer className="border-t border-gray-800 py-6 text-center text-xs text-gray-600">
-        <Link to="/" className="hover:text-gray-400">Start</Link>
+        <Link to="/" className="hover:text-gray-400">Home</Link>
         {' · '}
-        <Link to="/datenschutz" className="hover:text-gray-400">Datenschutz</Link>
+        <Link to="/datenschutz" className="hover:text-gray-400">Privacy</Link>
         {' · '}
-        <Link to="/impressum" className="hover:text-gray-400">Impressum</Link>
+        <Link to="/impressum" className="hover:text-gray-400">Imprint</Link>
       </footer>
     </div>
   )

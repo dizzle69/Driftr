@@ -33,20 +33,20 @@ export default function PersonalRecords({ activities }) {
     const longest = activities.reduce((best, a) => a.distance > best.distance ? a : best, activities[0])
     result.push({
       icon: '📏',
-      label: 'Längste Fahrt',
+        label: 'Longest ride',
       value: `${(longest.distance * METERS_TO_KM).toFixed(1)} km`,
       ride: longest.name,
-      date: new Date(longest.date).toLocaleDateString('de-DE'),
+      date: new Date(longest.date).toLocaleDateString('en-US'),
     })
 
     // Fastest avg speed
     const fastest = activities.reduce((best, a) => a.avgSpeed > best.avgSpeed ? a : best, activities[0])
     result.push({
       icon: '⚡',
-      label: 'Höchster Ø Speed',
+        label: 'Highest avg speed',
       value: `${(fastest.avgSpeed * MS_TO_KMH).toFixed(1)} km/h`,
       ride: fastest.name,
-      date: new Date(fastest.date).toLocaleDateString('de-DE'),
+      date: new Date(fastest.date).toLocaleDateString('en-US'),
     })
 
     // Most elevation
@@ -54,10 +54,10 @@ export default function PersonalRecords({ activities }) {
     if (climbiest.elevationGain > 0) {
       result.push({
         icon: '⛰️',
-        label: 'Meiste Höhenmeter',
+        label: 'Most elevation gain',
         value: `${Math.round(climbiest.elevationGain)} m`,
         ride: climbiest.name,
-        date: new Date(climbiest.date).toLocaleDateString('de-DE'),
+        date: new Date(climbiest.date).toLocaleDateString('en-US'),
       })
     }
 
@@ -65,10 +65,10 @@ export default function PersonalRecords({ activities }) {
     const longestTime = activities.reduce((best, a) => a.movingTime > best.movingTime ? a : best, activities[0])
     result.push({
       icon: '⏱️',
-      label: 'Längste Fahrzeit',
+      label: 'Longest moving time',
       value: formatDuration(longestTime.movingTime),
       ride: longestTime.name,
-      date: new Date(longestTime.date).toLocaleDateString('de-DE'),
+      date: new Date(longestTime.date).toLocaleDateString('en-US'),
     })
 
     // Highest max speed — skip rides where max/avg ratio is implausibly high
@@ -84,10 +84,10 @@ export default function PersonalRecords({ activities }) {
       const topSpeed = speedCandidates.reduce((best, a) => a.maxSpeed > best.maxSpeed ? a : best, speedCandidates[0])
       result.push({
         icon: '🏎️',
-        label: 'Höchste Geschwindigkeit',
+        label: 'Top speed',
         value: `${(topSpeed.maxSpeed * MS_TO_KMH).toFixed(1)} km/h`,
         ride: topSpeed.name,
-        date: new Date(topSpeed.date).toLocaleDateString('de-DE'),
+        date: new Date(topSpeed.date).toLocaleDateString('en-US'),
       })
     }
 
@@ -96,10 +96,10 @@ export default function PersonalRecords({ activities }) {
     if (mostCalories.calories > 0) {
       result.push({
         icon: '🔥',
-        label: 'Meiste Kalorien',
+        label: 'Most calories',
         value: `${Math.round(mostCalories.calories)} kcal`,
         ride: mostCalories.name,
-        date: new Date(mostCalories.date).toLocaleDateString('de-DE'),
+        date: new Date(mostCalories.date).toLocaleDateString('en-US'),
       })
     }
 
@@ -110,7 +110,7 @@ export default function PersonalRecords({ activities }) {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3 text-gray-200">Persönliche Rekorde</h2>
+      <h2 className="text-lg font-semibold mb-3 text-gray-200">Personal records</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {records.map((r, i) => (
           <RecordCard key={i} {...r} />

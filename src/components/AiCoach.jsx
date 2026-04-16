@@ -8,28 +8,28 @@ const PROVIDERS = [
 
 const MODELS = {
   claude: [
-    { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (empfohlen)' },
-    { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6 (leistungsstark)' },
+    { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (recommended)' },
+    { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6 (powerful)' },
   ],
   openai: [
-    { value: 'gpt-4o',      label: 'GPT-4o (empfohlen)' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o mini (schnell)' },
+    { value: 'gpt-4o',      label: 'GPT-4o (recommended)' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o mini (faster)' },
   ],
 }
 
-const SYSTEM_PROMPT = `Du bist ein erfahrener Trainingscoach für Radsport. Du analysierst Strava-Trainingsdaten und gibst präzise, datenbasierte Antworten auf Deutsch. Sei konkret, nenne Zahlen aus den Daten und gib praxisnahe Empfehlungen. Antworte in maximal 5 Sätzen, außer der Nutzer fragt nach einer ausführlicheren Analyse.`
+const SYSTEM_PROMPT = `You are an experienced cycling coach. Analyze Strava training data and provide concise, data-driven answers in English. Be specific, reference numbers from the data, and give practical recommendations. Keep responses to a maximum of 5 sentences unless the user asks for a deeper analysis.`
 
 /** Never surface API key-like substrings from provider errors to the UI (XSS / shoulder-surfing). */
 function safeCoachError(e) {
-  const m = e?.message || 'Unbekannter Fehler'
+  const m = e?.message || 'Unknown error'
   if (/sk-[a-zA-Z0-9_-]{10,}/i.test(m) || /Bearer\s+\S+/i.test(m)) {
-    return 'API-Fehler — Details wurden aus Sicherheitsgründen ausgeblendet.'
+    return 'API error — details were hidden for security reasons.'
   }
   return m
 }
 
 async function callClaude(apiKey, model, messages, context) {
-  const systemWithContext = `${SYSTEM_PROMPT}\n\nAktueller Trainingskontext:\n${context}`
+  const systemWithContext = `${SYSTEM_PROMPT}\n\nCurrent training context:\n${context}`
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -47,14 +47,14 @@ async function callClaude(apiKey, model, messages, context) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || `API-Fehler ${res.status}`)
+    throw new Error(err?.error?.message || `API error ${res.status}`)
   }
   const data = await res.json()
   return data.content?.[0]?.text || ''
 }
 
 async function callOpenAI(apiKey, model, messages, context) {
-  const systemMsg = { role: 'system', content: `${SYSTEM_PROMPT}\n\nAktueller Trainingskontext:\n${context}` }
+  const systemMsg = { role: 'system', content: `${SYSTEM_PROMPT}\n\nCurrent training context:\n${context}` }
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -69,7 +69,7 @@ async function callOpenAI(apiKey, model, messages, context) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || `API-Fehler ${res.status}`)
+    throw new Error(err?.error?.message || `API error ${res.status}`)
   }
   const data = await res.json()
   return data.choices?.[0]?.message?.content || ''
@@ -114,9 +114,9 @@ export default function AiCoach({ activities }) {
   async function send() {
     const text = input.trim()
     if (!text || loading) return
-    if (!apiKey) { setError('Bitte API-Schlüssel eingeben.'); setShowSettings(true); return }
+    if (!apiKey) { setError('Please enter an API key.'); setShowSettings(true); return }
     if (!aiConsent) {
-      setError('Bitte bestätige die Einwilligung, dass Trainingsdaten an den ausgewählten KI-Anbieter gesendet werden.')
+      setError('Please confirm consent to send training data to the selected AI provider.')
       setShowSettings(true)
       return
     }
@@ -151,7 +151,7 @@ export default function AiCoach({ activities }) {
       <button
         onClick={() => setOpen(o => !o)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-strava text-white shadow-lg flex items-center justify-center text-2xl hover:bg-orange-600 transition"
-        title="KI-Trainingscoach"
+        title="AI Training Coach"
       >
         🤖
       </button>
@@ -161,12 +161,12 @@ export default function AiCoach({ activities }) {
         <div className="fixed bottom-24 right-6 z-40 w-96 max-h-[80vh] flex flex-col rounded-2xl bg-gray-900 border border-gray-700 shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-            <span className="font-semibold text-gray-100">KI-Trainingscoach</span>
+            <span className="font-semibold text-gray-100">AI Training Coach</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowSettings(s => !s)}
                 className="text-gray-400 hover:text-white text-lg transition"
-                title="Einstellungen"
+                title="Settings"
               >⚙</button>
               <button
                 onClick={() => setOpen(false)}
@@ -200,7 +200,7 @@ export default function AiCoach({ activities }) {
               </select>
               <input
                 type="password"
-                placeholder="API-Schlüssel eingeben…"
+                placeholder="Enter API key…"
                 value={apiKey}
                 onChange={e => handleKeyChange(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2 py-1.5 focus:border-strava focus:outline-none"
@@ -216,10 +216,10 @@ export default function AiCoach({ activities }) {
                   }}
                   className="mt-0.5"
                 />
-                Ich bin einverstanden, dass Trainingsdaten an den ausgewählten KI-Anbieter gesendet werden.
+                I agree that training data can be sent to the selected AI provider.
               </label>
               <p className="text-gray-600 text-xs">
-                Der API-Schlüssel wird nicht dauerhaft gespeichert (nur im aktuellen Browsertab).
+                The API key is not stored persistently (only in the current browser tab).
               </p>
             </div>
           )}
@@ -228,9 +228,9 @@ export default function AiCoach({ activities }) {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {messages.length === 0 && (
               <p className="text-gray-500 text-sm text-center mt-4">
-                Stell mir eine Frage zu deinem Training,
+                Ask a question about your training,
                 <br />
-                z. B. „Wie war mein Training diesen Monat?“
+                for example: “How did my training look this month?”
               </p>
             )}
             {messages.map((m, i) => (
@@ -252,7 +252,7 @@ export default function AiCoach({ activities }) {
             {loading && (
               <div className="flex justify-start">
                 <div className="bg-gray-800 text-gray-400 rounded-xl px-3 py-2 text-sm">
-                  <span className="animate-pulse">Denkt nach…</span>
+                  <span className="animate-pulse">Thinking…</span>
                 </div>
               </div>
             )}
@@ -271,7 +271,7 @@ export default function AiCoach({ activities }) {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-              placeholder="Frage stellen…"
+              placeholder="Ask a question…"
               className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2 focus:border-strava focus:outline-none"
               disabled={loading}
             />

@@ -66,12 +66,12 @@ export default function PowerCurve({ activities }) {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-gray-200">
           Power Curve
-          <InfoTooltip text="Beste durchschnittliche Leistung für verschiedene Zeitfenster über alle Fahrten. Basis für die FTP-Schätzung." />
+          <InfoTooltip text="Best average power across multiple time windows over all rides. Used for FTP estimation." />
         </h2>
         {estimatedFtp && (
           <span className="text-sm text-gray-400">
-            Geschätzte FTP: <span className="text-amber-400 font-semibold">~{estimatedFtp} W</span>
-            <span className="text-gray-600 ml-1">(Best 20 min × 0,95)</span>
+            Estimated FTP: <span className="text-amber-400 font-semibold">~{estimatedFtp} W</span>
+            <span className="text-gray-600 ml-1">(best 20 min × 0.95)</span>
           </span>
         )}
       </div>
@@ -99,7 +99,7 @@ export default function PowerCurve({ activities }) {
             />
             <Tooltip
               contentStyle={tooltipStyle}
-              formatter={(v) => [`${v} W`, 'Beste Leistung']}
+                  formatter={(v) => [`${v} W`, 'Best output']}
             />
             {ftp > 0 && (
               <ReferenceLine

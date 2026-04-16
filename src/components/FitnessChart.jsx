@@ -69,13 +69,13 @@ export default function FitnessChart({ activities }) {
   return (
     <div>
       <div className="flex items-baseline gap-3 mb-1">
-        <h2 className="text-lg font-semibold text-gray-200">Fitness-Kurve<InfoTooltip text="CTL (Fitness) = 42-Tage-EMA, ATL (Erschöpfung) = 7-Tage-EMA, TSB (Form) = CTL − ATL. Positiver TSB = frisch, negativer TSB = müde." /></h2>
-        <span className="text-xs text-gray-500">basierend auf Relative Effort</span>
+        <h2 className="text-lg font-semibold text-gray-200">Fitness curve<InfoTooltip text="CTL (fitness) = 42-day EMA, ATL (fatigue) = 7-day EMA, TSB (form) = CTL − ATL. Positive TSB = fresh, negative TSB = fatigued." /></h2>
+        <span className="text-xs text-gray-500">based on Relative Effort</span>
       </div>
       <p className="text-xs text-gray-600 mb-3">
-        🔵 CTL = Fitness (42-Tage) &nbsp;·&nbsp;
-        🟠 ATL = Ermüdung (7-Tage) &nbsp;·&nbsp;
-        🟢 TSB &gt; 0 = frisch &nbsp; 🔴 TSB &lt; 0 = müde
+        🔵 CTL = Fitness (42-day) &nbsp;·&nbsp;
+        🟠 ATL = Fatigue (7-day) &nbsp;·&nbsp;
+        🟢 TSB &gt; 0 = fresh &nbsp; 🔴 TSB &lt; 0 = fatigued
       </p>
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
         <ResponsiveContainer width="100%" height={300}>
@@ -86,7 +86,7 @@ export default function FitnessChart({ activities }) {
               tick={{ fill: '#6b7280', fontSize: 11 }}
               tickLine={false}
               tickFormatter={(v) =>
-                new Date(v).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' })
+                new Date(v).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
               }
               interval="preserveStartEnd"
             />
@@ -108,7 +108,7 @@ export default function FitnessChart({ activities }) {
             <Tooltip
               contentStyle={tooltipStyle}
               labelStyle={{ color: '#9ca3af' }}
-              labelFormatter={(v) => new Date(v).toLocaleDateString('de-DE')}
+              labelFormatter={(v) => new Date(v).toLocaleDateString('en-US')}
               formatter={(v, name) => [v.toFixed(1), name]}
             />
             <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12 }} />
@@ -139,7 +139,7 @@ export default function FitnessChart({ activities }) {
               stroke="#f97316"
               strokeWidth={2}
               dot={false}
-              name="Ermüdung (ATL)"
+              name="Fatigue (ATL)"
               strokeDasharray="5 3"
             />
           </ComposedChart>

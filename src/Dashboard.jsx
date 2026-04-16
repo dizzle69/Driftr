@@ -106,7 +106,7 @@ export default function Dashboard() {
             />
           </div>
           <p className="text-center text-xs text-gray-500 bg-gray-950/90 py-0.5 leading-none">
-            🌤 Wetter: {weatherProgress.done}/{weatherProgress.total}
+            🌤 Weather: {weatherProgress.done}/{weatherProgress.total}
           </p>
         </div>
       )}
@@ -123,7 +123,7 @@ export default function Dashboard() {
             />
           </div>
           <p className="text-center text-xs text-gray-500 bg-gray-950/90 py-0.5 leading-none">
-            📍 Orte: {geocodingProgress.done}/{geocodingProgress.total}
+            📍 Places: {geocodingProgress.done}/{geocodingProgress.total}
           </p>
         </div>
       )}
@@ -131,7 +131,7 @@ export default function Dashboard() {
       <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-strava" data-testid="dashboard-heading">Driftr</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Rad-Analysen · lokal im Browser</p>
+          <p className="text-xs text-gray-500 mt-0.5">Cycling analytics · local in your browser</p>
         </div>
         {appState === 'dashboard' && (
           <button
@@ -166,7 +166,7 @@ export default function Dashboard() {
           )}
           <AiCoach activities={filtered} />
           <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 space-y-2">
-            <h2 className="text-sm font-semibold text-gray-200">Datenfreigaben</h2>
+            <h2 className="text-sm font-semibold text-gray-200">Data sharing settings</h2>
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <label className="flex items-start gap-2 text-sm text-gray-300">
                 <input
@@ -179,7 +179,7 @@ export default function Dashboard() {
                   }}
                   className="mt-0.5"
                 />
-                Wetterdaten nachladen (Open-Meteo)
+                Fetch weather data (Open-Meteo)
               </label>
               <label className="flex items-start gap-2 text-sm text-gray-300">
                 <input
@@ -192,7 +192,7 @@ export default function Dashboard() {
                   }}
                   className="mt-0.5"
                 />
-                Ortsnamen bestimmen (Nominatim)
+                Resolve location names (Nominatim)
               </label>
               <label className="flex items-start gap-2 text-sm text-gray-300">
                 <input
@@ -205,11 +205,11 @@ export default function Dashboard() {
                   }}
                   className="mt-0.5"
                 />
-                Kartenkacheln laden (CARTO)
+                Load map tiles (CARTO)
               </label>
             </div>
             <p className="text-xs text-gray-500">
-              Wird beim Laden/Import verwendet; schon berechnete Daten bleiben im Browser gespeichert.
+              Applied during import/load; already computed results remain stored in your browser.
             </p>
           </div>
           <div className="space-y-8">

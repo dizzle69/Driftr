@@ -9,13 +9,13 @@ import {
 } from 'recharts'
 
 const MS_TO_KMH = 3.6
-const MONTHS_DE = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const YEAR_COLORS = ['#FC4C02', '#3b82f6', '#10b981', '#f59e0b']
 
 const tooltipStyle = { background: '#111827', border: '1px solid #374151', borderRadius: 8 }
 
 function formatWeekLabel(v) {
-  // v is "YYYY-Www" — convert to "1. Jan" style
+  // v is "YYYY-Www" — convert to "Jan 1" style
   const parts = v.split('-W')
   if (parts.length !== 2) return v
   const year = Number(parts[0])
@@ -25,7 +25,7 @@ function formatWeekLabel(v) {
   const dayOfWeek = jan4.getDay() || 7 // Mon=1 … Sun=7
   const weekStart = new Date(jan4)
   weekStart.setDate(jan4.getDate() - (dayOfWeek - 1) + (week - 1) * 7)
-  return weekStart.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })
+  return weekStart.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
 }
 
 export default function DashboardCharts({ activities }) {
@@ -65,7 +65,7 @@ export default function DashboardCharts({ activities }) {
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map(a => ({
         name: a.name,
-        date: new Date(a.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+        date: new Date(a.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
         uphill: Math.round(a.uphillTime / 60),
         downhill: Math.round(a.downhillTime / 60),
         flat: Math.round(a.otherTime / 60),
@@ -82,7 +82,7 @@ export default function DashboardCharts({ activities }) {
     return sorted.map(a => {
       cumulative += a.newlyExploredDistance * 0.001
       return {
-        date: new Date(a.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+        date: new Date(a.date).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' }),
         newKm: parseFloat(cumulative.toFixed(1)),
         name: a.name,
       }
@@ -158,10 +158,10 @@ export default function DashboardCharts({ activities }) {
     if (trackedRides.length < 2) return []
 
     const zones = [
-      { name: 'Z1 Erholung',   color: '#6b7280', min: 0,    max: 0.55 },
-      { name: 'Z2 Grundlage',  color: '#3b82f6', min: 0.55, max: 0.75 },
+      { name: 'Z1 Recovery',   color: '#6b7280', min: 0,    max: 0.55 },
+      { name: 'Z2 Endurance',  color: '#3b82f6', min: 0.55, max: 0.75 },
       { name: 'Z3 Tempo',      color: '#10b981', min: 0.75, max: 0.90 },
-      { name: 'Z4 Schwelle',   color: '#f59e0b', min: 0.90, max: 1.05 },
+      { name: 'Z4 Threshold',  color: '#f59e0b', min: 0.90, max: 1.05 },
       { name: 'Z5 VO2max',     color: '#ef4444', min: 1.05, max: Infinity },
     ]
 
@@ -199,12 +199,12 @@ export default function DashboardCharts({ activities }) {
       const d = new Date(a.date)
       const month = d.getMonth()   // 0–11
       const year = d.getFullYear()
-      if (!byMonthYear[month]) byMonthYear[month] = { month: MONTHS_DE[month] }
+      if (!byMonthYear[month]) byMonthYear[month] = { month: MONTHS_EN[month] }
       byMonthYear[month][year] = Math.round((byMonthYear[month][year] || 0) + a.distance * 0.001)
     })
 
     const data = Array.from({ length: 12 }, (_, i) => ({
-      month: MONTHS_DE[i],
+      month: MONTHS_EN[i],
       ...(byMonthYear[i] || {}),
     }))
 
@@ -258,8 +258,8 @@ export default function DashboardCharts({ activities }) {
       {/* Weekly Volume */}
       <div>
         <h2 className="text-lg font-semibold mb-3 text-gray-200">
-          Wochenvolumen <span className="text-gray-500 font-normal text-sm">(letzte 24 Wochen)</span>
-          <InfoTooltip text="Wöchentliche Kilometer und Anzahl Fahrten der letzten 24 Wochen." />
+          Weekly volume <span className="text-gray-500 font-normal text-sm">(last 24 weeks)</span>
+          <InfoTooltip text="Weekly distance and ride count over the last 24 weeks." />
         </h2>
         <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
           <ResponsiveContainer width="100%" height={280}>
@@ -275,7 +275,7 @@ export default function DashboardCharts({ activities }) {
               <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} unit=" km" />
               <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
                 labelFormatter={(v) => formatWeekLabel(v)}
-                formatter={(v) => [`${v.toFixed(0)} km`, 'Distanz']} />
+                formatter={(v) => [`${v.toFixed(0)} km`, 'Distance']} />
               <Bar dataKey="km" fill="#FC4C02" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -285,7 +285,7 @@ export default function DashboardCharts({ activities }) {
       {/* Monthly Progression */}
       {monthlyData.length > 1 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Monatliche Entwicklung<InfoTooltip text="Monatliche Gesamtdistanz, Durchschnittsgeschwindigkeit und optional Leistung (Watt)." /></h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Monthly progression<InfoTooltip text="Monthly total distance, average speed, and optional power (watts)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={monthlyData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -298,10 +298,10 @@ export default function DashboardCharts({ activities }) {
                 )}
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }} />
                 <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12 }} />
-                <Bar yAxisId="km" dataKey="km" fill="#FC4C02" radius={[4, 4, 0, 0]} name="Distanz (km)" />
-                <Line yAxisId="speed" dataKey="avgSpeed" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="Ø Speed (km/h)" />
+                <Bar yAxisId="km" dataKey="km" fill="#FC4C02" radius={[4, 4, 0, 0]} name="Distance (km)" />
+                <Line yAxisId="speed" dataKey="avgSpeed" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="Avg speed (km/h)" />
                 {hasPowerTrend && (
-                  <Line yAxisId="watts" dataKey="avgWatts" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} name="Ø Watt" strokeDasharray="4 2" />
+                  <Line yAxisId="watts" dataKey="avgWatts" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} name="Avg watts" strokeDasharray="4 2" />
                 )}
               </ComposedChart>
             </ResponsiveContainer>
@@ -312,15 +312,15 @@ export default function DashboardCharts({ activities }) {
       {/* Speed vs Temperature */}
       {tempSpeedData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Geschwindigkeit vs. Temperatur<InfoTooltip text="Zusammenhang zwischen Außentemperatur und Durchschnittsgeschwindigkeit je Fahrt." /></h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Speed vs temperature<InfoTooltip text="Relationship between outside temperature and average speed per ride." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ScatterChart margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                <XAxis dataKey="temp" type="number" name="Temperatur" unit="°C" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                <YAxis dataKey="speed" type="number" name="Geschwindigkeit" unit=" km/h" tick={{ fill: '#6b7280', fontSize: 11 }} />
+                <XAxis dataKey="temp" type="number" name="Temperature" unit="°C" tick={{ fill: '#6b7280', fontSize: 11 }} />
+                <YAxis dataKey="speed" type="number" name="Speed" unit=" km/h" tick={{ fill: '#6b7280', fontSize: 11 }} />
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={tooltipStyle}
-                  formatter={(v, name) => name === 'Temperatur' ? [`${v}°C`, name] : [`${v} km/h`, name]} />
+                  formatter={(v, name) => name === 'Temperature' ? [`${v}°C`, name] : [`${v} km/h`, name]} />
                 <Scatter data={tempSpeedData} fill="#FC4C02" opacity={0.7} />
               </ScatterChart>
             </ResponsiveContainer>
@@ -331,7 +331,7 @@ export default function DashboardCharts({ activities }) {
       {/* Ride Duration Breakdown */}
       {durationData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Fahrtzeit-Aufteilung<InfoTooltip text="Zeitanteil je Fahrt aufgeteilt in Bergauf-, Bergab- und Flachstrecken (in Minuten)." /></h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Ride time breakdown<InfoTooltip text="Time share per ride split into uphill, downhill, and flat sections (in minutes)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={durationData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -341,9 +341,9 @@ export default function DashboardCharts({ activities }) {
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
                   formatter={(v, name) => [`${v} min`, name]} />
                 <Legend wrapperStyle={{ fontSize: 12, color: '#9ca3af' }} />
-                <Bar dataKey="uphill" stackId="time" fill="#FC4C02" name="Bergauf" />
-                <Bar dataKey="downhill" stackId="time" fill="#3b82f6" name="Bergab" />
-                <Bar dataKey="flat" stackId="time" fill="#4b5563" name="Flach" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="uphill" stackId="time" fill="#FC4C02" name="Uphill" />
+                <Bar dataKey="downhill" stackId="time" fill="#3b82f6" name="Downhill" />
+                <Bar dataKey="flat" stackId="time" fill="#4b5563" name="Flat" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -353,7 +353,7 @@ export default function DashboardCharts({ activities }) {
       {/* Cumulative Exploration */}
       {explorationData.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Neue Strecken entdeckt<InfoTooltip text="Kumuliert neu erkundete Streckenkilometer im Zeitverlauf – Strecken, die du zum ersten Mal gefahren bist." /></h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">New routes discovered<InfoTooltip text="Cumulative newly explored kilometers over time — routes you rode for the first time." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={explorationData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -361,8 +361,8 @@ export default function DashboardCharts({ activities }) {
                 <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} />
                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} unit=" km" />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
-                  formatter={(v) => [`${v} km`, 'Neue km gesamt']} />
-                <Line dataKey="newKm" stroke="#22c55e" strokeWidth={2} dot={{ r: 2 }} name="Neue km gesamt" />
+                  formatter={(v) => [`${v} km`, 'New km total']} />
+                <Line dataKey="newKm" stroke="#22c55e" strokeWidth={2} dot={{ r: 2 }} name="New km total" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -372,7 +372,7 @@ export default function DashboardCharts({ activities }) {
       {/* Calorie & Effort Trends */}
       {hasCalorieData && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-200">Kalorien & Effort pro Woche<InfoTooltip text="Wöchentlicher Kalorienverbrauch und durchschnittlicher relativer Trainingsaufwand (Strava Relative Effort)." /></h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-200">Calories & effort per week<InfoTooltip text="Weekly calorie burn and average relative training effort (Strava Relative Effort)." /></h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={weeklyCalorieData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
@@ -383,8 +383,8 @@ export default function DashboardCharts({ activities }) {
                 <YAxis yAxisId="effort" orientation="right" tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
                   labelFormatter={(v) => formatWeekLabel(v)} />
-                <Bar yAxisId="cal" dataKey="calories" fill="#ef4444" opacity={0.7} radius={[4, 4, 0, 0]} name="Kalorien" />
-                <Line yAxisId="effort" dataKey="avgEffort" stroke="#a855f7" strokeWidth={2} dot={{ r: 2 }} name="Ø Relative Effort" />
+                <Bar yAxisId="cal" dataKey="calories" fill="#ef4444" opacity={0.7} radius={[4, 4, 0, 0]} name="Calories" />
+                <Line yAxisId="effort" dataKey="avgEffort" stroke="#a855f7" strokeWidth={2} dot={{ r: 2 }} name="Avg Relative Effort" />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -396,8 +396,8 @@ export default function DashboardCharts({ activities }) {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-200">
-              Power Zonen <span className="text-gray-500 font-normal text-sm">(aus GPS-Tracks)</span>
-              <InfoTooltip text="Anteil der Fahrzeit in den fünf Leistungszonen relativ zu deiner FTP (Functional Threshold Power)." />
+              Power zones <span className="text-gray-500 font-normal text-sm">(from GPS tracks)</span>
+              <InfoTooltip text="Share of ride time in each of five power zones relative to your FTP (Functional Threshold Power)." />
             </h2>
             <label className="flex items-center gap-2 text-sm text-gray-400">
               FTP:
@@ -423,7 +423,7 @@ export default function DashboardCharts({ activities }) {
                 <YAxis type="category" dataKey="name" tick={{ fill: '#9ca3af', fontSize: 12 }} tickLine={false} width={80} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(v) => [`${v}%`, 'Anteil']}
+                  formatter={(v) => [`${v}%`, 'Share']}
                 />
                 <Bar dataKey="pct" radius={[0, 4, 4, 0]}>
                   {powerZoneData.map((entry, i) => (
@@ -443,8 +443,8 @@ export default function DashboardCharts({ activities }) {
       {hasYoY && (
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
-            Jahr-für-Jahr Vergleich <span className="text-gray-500 font-normal text-sm">(km pro Monat)</span>
-            <InfoTooltip text="Monatsweise Distanzvergleich über mehrere Jahre hinweg – ideal um Saisonmuster zu erkennen." />
+            Year-over-year comparison <span className="text-gray-500 font-normal text-sm">(km per month)</span>
+            <InfoTooltip text="Monthly distance comparison across multiple years — useful for spotting seasonal patterns." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={280}>
@@ -474,8 +474,8 @@ export default function DashboardCharts({ activities }) {
       {hasCadenceData && cadenceData.length >= 3 && (
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
-            Trittfrequenz-Entwicklung <span className="text-gray-500 font-normal text-sm">(Ø rpm pro Monat)</span>
-            <InfoTooltip text="Monatlicher Durchschnitt der Trittfrequenz (U/min). Höhere Kadenz schont typischerweise die Gelenke." />
+            Cadence trend <span className="text-gray-500 font-normal text-sm">(avg rpm per month)</span>
+            <InfoTooltip text="Monthly average cadence (rpm). Higher cadence often reduces joint stress." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={240}>
@@ -485,9 +485,9 @@ export default function DashboardCharts({ activities }) {
                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} unit=" rpm"
                   domain={['auto', 'auto']} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
-                  formatter={(v) => [`${v} rpm`, 'Ø Kadenz']} />
+                  formatter={(v) => [`${v} rpm`, 'Avg cadence']} />
                 <Line dataKey="avgCadence" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: '#10b981' }}
-                  name="Ø Kadenz (rpm)" activeDot={{ r: 6 }} />
+                  name="Avg cadence (rpm)" activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -498,8 +498,8 @@ export default function DashboardCharts({ activities }) {
       {hasHRData && hrData.length >= 3 && (
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-200">
-            Herzfrequenz-Entwicklung <span className="text-gray-500 font-normal text-sm">(Ø bpm pro Monat)</span>
-            <InfoTooltip text="Monatlicher Durchschnitt der Herzfrequenz (bpm). Sinkende Werte bei gleicher Leistung deuten auf bessere Fitness hin." />
+            Heart rate trend <span className="text-gray-500 font-normal text-sm">(avg bpm per month)</span>
+            <InfoTooltip text="Monthly average heart rate (bpm). Lower values at equal output can indicate improved fitness." />
           </h2>
           <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
             <ResponsiveContainer width="100%" height={240}>
@@ -509,9 +509,9 @@ export default function DashboardCharts({ activities }) {
                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} unit=" bpm"
                   domain={['auto', 'auto']} />
                 <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: '#9ca3af' }}
-                  formatter={(v) => [`${v} bpm`, 'Ø Herzfrequenz']} />
+                  formatter={(v) => [`${v} bpm`, 'Avg heart rate']} />
                 <Line dataKey="avgHR" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: '#ef4444' }}
-                  name="Ø HR (bpm)" activeDot={{ r: 6 }} />
+                  name="Avg HR (bpm)" activeDot={{ r: 6 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

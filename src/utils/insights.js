@@ -32,9 +32,9 @@ function bestTemperatureRange(activities) {
   if (bestBucket == null) return null
   return {
     icon: '🌡️',
-    title: 'Wohlfühl-Temperatur',
+    title: 'Best temperature range',
     value: `${bestBucket}–${bestBucket + 5}°C`,
-    sub: `Ø ${bestAvg.toFixed(1)} km/h in diesem Bereich`,
+    sub: `Avg ${bestAvg.toFixed(1)} km/h in this range`,
     color: 'orange',
   }
 }
@@ -57,9 +57,9 @@ function headwindImpact(activities) {
 
   return {
     icon: '💨',
-    title: 'Gegenwind-Effekt',
+    title: 'Headwind impact',
     value: `−${diff.toFixed(1)} km/h`,
-    sub: `Gegenwind vs. Rückenwind (Ø über alle Rides)`,
+    sub: `Headwind vs. tailwind (average across all rides)`,
     color: 'blue',
   }
 }
@@ -69,7 +69,7 @@ function headwindImpact(activities) {
  */
 function bestDayOfWeek(activities) {
   if (activities.length < 14) return null
-  const DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
+  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const byDay = {}
 
   activities.forEach(a => {
@@ -89,7 +89,7 @@ function bestDayOfWeek(activities) {
   if (bestDay == null) return null
   return {
     icon: '📅',
-    title: 'Stärkster Wochentag',
+    title: 'Strongest weekday',
     value: DAYS[bestDay],
     sub: `Ø ${bestAvg.toFixed(1)} km/h`,
     color: 'green',
@@ -104,9 +104,9 @@ function totalStats(activities) {
   const totalHm = activities.reduce((s, a) => s + (a.elevationGain || 0), 0)
   return {
     icon: '🚴',
-    title: 'Gesamtleistung',
-    value: `${Math.round(totalKm).toLocaleString('de-DE')} km`,
-    sub: `${Math.round(totalHm).toLocaleString('de-DE')} Hm in ${activities.length} Rides`,
+    title: 'Overall output',
+    value: `${Math.round(totalKm).toLocaleString('en-US')} km`,
+    sub: `${Math.round(totalHm).toLocaleString('en-US')} m elevation gain across ${activities.length} rides`,
     color: 'orange',
   }
 }
@@ -121,9 +121,9 @@ function explorationStats(activities) {
   const pct = totalKm > 0 ? ((totalNew / totalKm) * 100).toFixed(0) : 0
   return {
     icon: '🗺️',
-    title: 'Entdecker-Score',
-    value: `${Math.round(totalNew)} km neu`,
-    sub: `${pct}% deiner Gesamtdistanz waren neue Strecken`,
+    title: 'Explorer score',
+    value: `${Math.round(totalNew)} km new`,
+    sub: `${pct}% of your total distance was on new routes`,
     color: 'green',
   }
 }
@@ -138,9 +138,9 @@ function dirtRatio(activities) {
   const pct = totalKm > 0 ? ((totalDirt / totalKm) * 100).toFixed(0) : 0
   return {
     icon: '🌲',
-    title: 'Offroad-Anteil',
+    title: 'Off-road share',
     value: `${Math.round(totalDirt)} km Gravel`,
-    sub: `${pct}% deiner Fahrten auf unbefestigtem Untergrund`,
+    sub: `${pct}% of your distance was on unpaved terrain`,
     color: 'green',
   }
 }
@@ -156,9 +156,9 @@ function carbonSaved(activities) {
   const co2Kg = totalKm * 0.21
   return {
     icon: '🌿',
-    title: 'CO₂ gespart',
+    title: 'CO₂ saved',
     value: co2Kg >= 1000 ? `${(co2Kg / 1000).toFixed(1)} t` : `${Math.round(co2Kg)} kg`,
-    sub: `~0,21 kg/km vs. Autofahren (${Math.round(totalKm).toLocaleString('de-DE')} km)`,
+    sub: `~0.21 kg/km vs. driving (${Math.round(totalKm).toLocaleString('en-US')} km)`,
     color: 'green',
   }
 }
@@ -181,10 +181,10 @@ function powerStats(activities) {
   if (withNP.length >= 3) {
     const avgNP = withNP.reduce((s, a) => s + a.normalizedPower, 0) / withNP.length
     const avgVI = withNP.reduce((s, a) => s + (a.normalizedPower / a.avgWatts), 0) / withNP.length
-    sub = `Ø NP: ${Math.round(avgNP)} W · VI: ${avgVI.toFixed(2)} · ${withNP.length} Rides mit Power`
+    sub = `Avg NP: ${Math.round(avgNP)} W · VI: ${avgVI.toFixed(2)} · ${withNP.length} rides with power`
   }
 
-  const label = withNP.length >= 3 ? 'Ø Watt (geschätzt)' : 'Ø Leistung'
+  const label = withNP.length >= 3 ? 'Avg watts (estimated)' : 'Avg power'
   return {
     icon: '⚡',
     title: label,

@@ -14,7 +14,7 @@ export default function RouteHeatmap({ activities, enableTiles = true }) {
       .map(a => ({
         id: a.id,
         name: a.name,
-        date: new Date(a.date).toLocaleDateString('de-DE'),
+        date: new Date(a.date).toLocaleDateString('en-US'),
         distance: (a.distance * METERS_TO_KM).toFixed(1),
         speed: (a.avgSpeed * MS_TO_KMH).toFixed(1),
         positions: a.gpsTrack.points.map(p => [p.lat, p.lon]),
@@ -39,11 +39,11 @@ export default function RouteHeatmap({ activities, enableTiles = true }) {
   return (
     <div>
       <h2 className="text-lg font-semibold mb-3 text-gray-200">
-        Strecken-Heatmap <span className="text-gray-500 font-normal text-sm">({tracks.length} Rides)</span>
+        Route heatmap <span className="text-gray-500 font-normal text-sm">({tracks.length} rides)</span>
       </h2>
       {!enableTiles && (
         <p className="text-xs text-gray-500 mb-2">
-          Kartenkacheln sind deaktiviert. (Routen werden weiterhin angezeigt.)
+          Map tiles are disabled. (Routes are still shown.)
         </p>
       )}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden" style={{ height: 450 }}>
